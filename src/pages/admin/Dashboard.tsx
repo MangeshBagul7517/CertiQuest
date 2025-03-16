@@ -1,10 +1,9 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   PlusCircle, Users, BookOpen, Award, BarChart4, Edit, Trash2,
-  ChevronDown, ChevronUp, Save, X, DollarSign, Clock, BookText
+  ChevronDown, ChevronUp, Save, X, DollarSign, Clock, BookText, Link as LinkIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,8 +22,8 @@ import { allCourses } from "@/data/courses-data";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CourseType } from "@/types/course";
 
-// Dashboard Schema for course management
 const courseFormSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters" }),
   description: z.string().min(20, { message: "Description must be at least 20 characters" }),
@@ -38,7 +37,8 @@ const courseFormSchema = z.object({
   isFeatured: z.boolean().default(false),
   isBestseller: z.boolean().default(false),
   rating: z.coerce.number().min(0).max(5, { message: "Rating must be between 0 and 5" }),
-  thumbnail: z.string().url({ message: "Please provide a valid image URL" })
+  image: z.string().url({ message: "Please provide a valid image URL" }),
+  driveLink: z.string().url({ message: "Please provide a valid Drive link" }).optional()
 });
 
 type CourseFormValues = z.infer<typeof courseFormSchema>;
@@ -46,11 +46,10 @@ type CourseFormValues = z.infer<typeof courseFormSchema>;
 const AdminDashboard = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [courses, setCourses] = useState(allCourses);
-  const [editingCourse, setEditingCourse] = useState<any | null>(null);
+  const [courses, setCourses] = useState<CourseType[]>(allCourses);
+  const [editingCourse, setEditingCourse] = useState<CourseType | null>(null);
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
   
-  // Stats for admin dashboard
   const stats = [
     { title: "Total Courses", value: courses.length, icon: BookOpen, color: "bg-blue-500" },
     { title: "Active Students", value: "2,451", icon: Users, color: "bg-green-500" },
@@ -58,7 +57,6 @@ const AdminDashboard = () => {
     { title: "Revenue", value: "$142,384", icon: DollarSign, color: "bg-purple-500" },
   ];
 
-  // Form for adding/editing courses
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
@@ -74,12 +72,12 @@ const AdminDashboard = () => {
       isFeatured: false,
       isBestseller: false,
       rating: 0,
-      thumbnail: ""
+      image: "",
+      driveLink: ""
     }
   });
 
-  // Load course data into form when editing
-  const editCourse = (course: any) => {
+  const editCourse = (course: CourseType) => {
     setEditingCourse(course);
     form.reset({
       title: course.title,
@@ -94,34 +92,39 @@ const AdminDashboard = () => {
       isFeatured: course.isFeatured || false,
       isBestseller: course.isBestseller || course.isPopular || false,
       rating: course.rating,
-      thumbnail: course.thumbnail || course.image
+      image: course.image,
+      driveLink: course.driveLink || ""
     });
   };
 
-  // Cancel editing
   const cancelEdit = () => {
     setEditingCourse(null);
     form.reset();
   };
 
-  // Handle form submission
   const onSubmit = (data: CourseFormValues) => {
     try {
       if (editingCourse) {
-        // Update existing course
         setCourses(courses.map(course => 
           course.id === editingCourse.id 
-            ? { ...course, ...data, id: editingCourse.id } 
+            ? { 
+                ...course, 
+                ...data, 
+                id: editingCourse.id,
+                thumbnail: data.image,
+                reviewCount: editingCourse.reviewCount || editingCourse.reviews,
+                reviews: editingCourse.reviews
+              } 
             : course
         ));
         toast.success("Course updated successfully");
       } else {
-        // Add new course
-        const newCourse = {
+        const newCourse: CourseType = {
           ...data,
           id: `course-${Date.now()}`,
-          reviewCount: 0,
-          students: 0
+          reviews: 0,
+          students: 0,
+          thumbnail: data.image
         };
         setCourses([...courses, newCourse]);
         toast.success("New course added successfully");
@@ -135,7 +138,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Delete course
   const deleteCourse = (id: string) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
       setCourses(courses.filter(course => course.id !== id));
@@ -143,12 +145,10 @@ const AdminDashboard = () => {
     }
   };
 
-  // Toggle expanded view for a course
   const toggleExpand = (id: string) => {
     setExpandedCourse(expandedCourse === id ? null : id);
   };
 
-  // Check if we're in edit mode
   const isEditing = !!editingCourse;
 
   if (!isAdmin) {
@@ -177,14 +177,13 @@ const AdminDashboard = () => {
             <Button onClick={() => navigate("/")} variant="outline" className="mr-2">
               View Site
             </Button>
-            <Button onClick={() => setEditingCourse({})}>
+            <Button onClick={() => setEditingCourse({} as CourseType)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Course
             </Button>
           </div>
         </div>
 
-        {/* Statistics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
           {stats.map((stat, index) => (
             <Card key={index}>
@@ -201,7 +200,6 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* Main Dashboard Content */}
         <Tabs defaultValue="courses" className="mb-8">
           <TabsList className="mb-8">
             <TabsTrigger value="courses">Courses</TabsTrigger>
@@ -210,7 +208,6 @@ const AdminDashboard = () => {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
-          {/* Courses Tab */}
           <TabsContent value="courses">
             {isEditing ? (
               <Card>
@@ -389,13 +386,30 @@ const AdminDashboard = () => {
                       
                       <FormField
                         control={form.control}
-                        name="thumbnail"
+                        name="image"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Thumbnail URL</FormLabel>
+                            <FormLabel>Course Image URL</FormLabel>
                             <FormControl>
                               <Input placeholder="Enter image URL" {...field} />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="driveLink"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Course Drive Link</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter Google Drive link to course materials" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              This link will be available to students after enrollment
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -518,7 +532,7 @@ const AdminDashboard = () => {
                                 <div className="flex items-center space-x-3">
                                   <div className="h-10 w-10 overflow-hidden rounded">
                                     <img
-                                      src={course.thumbnail || course.image}
+                                      src={course.image}
                                       alt={course.title}
                                       className="h-full w-full object-cover"
                                     />
@@ -578,7 +592,6 @@ const AdminDashboard = () => {
                               </TableCell>
                             </TableRow>
                             
-                            {/* Expanded Course Row */}
                             {expandedCourse === course.id && (
                               <TableRow>
                                 <TableCell colSpan={7}>
@@ -600,6 +613,19 @@ const AdminDashboard = () => {
                                         </h4>
                                         <p className="text-muted-foreground">Duration: {course.duration}</p>
                                         <p className="text-muted-foreground">Students: {course.students || 0}</p>
+                                        {course.driveLink && (
+                                          <div className="flex items-center mt-1">
+                                            <LinkIcon className="h-3 w-3 mr-1 text-muted-foreground" />
+                                            <a 
+                                              href={course.driveLink} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer"
+                                              className="text-xs text-primary hover:underline truncate max-w-[200px]"
+                                            >
+                                              Course Materials Link
+                                            </a>
+                                          </div>
+                                        )}
                                       </div>
                                       <div>
                                         <h4 className="font-semibold flex items-center mb-1">
@@ -607,7 +633,7 @@ const AdminDashboard = () => {
                                           Statistics
                                         </h4>
                                         <p className="text-muted-foreground">
-                                          Rating: {course.rating} ({course.reviewCount || course.reviews || 0} reviews)
+                                          Rating: {course.rating} ({course.reviews} reviews)
                                         </p>
                                       </div>
                                     </div>
@@ -625,7 +651,6 @@ const AdminDashboard = () => {
             )}
           </TabsContent>
           
-          {/* Students Tab - Placeholder */}
           <TabsContent value="students">
             <Card>
               <CardHeader>
@@ -645,7 +670,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
           
-          {/* Certificates Tab - Placeholder */}
           <TabsContent value="certificates">
             <Card>
               <CardHeader>
@@ -665,7 +689,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
           
-          {/* Analytics Tab - Placeholder */}
           <TabsContent value="analytics">
             <Card>
               <CardHeader>

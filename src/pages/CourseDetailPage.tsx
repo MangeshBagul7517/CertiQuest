@@ -1,27 +1,72 @@
 
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, BarChart, Users, Star, Check, Award, Download } from "lucide-react";
+import { ArrowLeft, Clock, BarChart, Users, Star, Check, Award, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import TestimonialCard from "@/components/TestimonialCard";
 import { allCourses } from "@/data/courses-data";
 import { testimonials } from "@/data/home-data";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+// Mock enrolled courses
+const enrolledCoursesIds: string[] = [];
 
 const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
   
   // Find the course from the data
   const course = allCourses.find(c => c.id === courseId);
+  
+  // Check if user is enrolled in this course
+  const isEnrolled = user && enrolledCoursesIds.includes(courseId || "");
+  
+  // Handle enrollment
+  const handleEnrollClick = () => {
+    if (!user) {
+      setShowLoginDialog(true);
+      return;
+    }
+    
+    setShowPaymentDialog(true);
+  };
+  
+  // Handle payment completion
+  const handlePaymentComplete = () => {
+    // In a real app, this would add the course to the user's enrolled courses in the database
+    enrolledCoursesIds.push(courseId || "");
+    setShowPaymentDialog(false);
+    toast.success("Successfully enrolled in the course!");
+  };
   
   // If course doesn't exist, show a message
   if (!course) {
@@ -172,8 +217,36 @@ const CourseDetailPage = () => {
                         <Badge>{course.level}</Badge>
                       </div>
                       
-                      <Button className="w-full mb-4 py-6">Enroll Now</Button>
-                      <Button variant="outline" className="w-full mb-6 py-6">Try For Free</Button>
+                      {isEnrolled ? (
+                        <>
+                          <Button className="w-full mb-4 py-6" asChild>
+                            <a 
+                              href={course.driveLink || "#"} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="mr-2 h-5 w-5" />
+                              Access Course Materials
+                            </a>
+                          </Button>
+                          <div className="pt-4 border-t border-border mb-6">
+                            <div className="flex justify-between text-sm mb-2">
+                              <span>Course Completion</span>
+                              <span className="font-medium">25%</span>
+                            </div>
+                            <Progress value={25} className="h-2" />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Button className="w-full mb-4 py-6" onClick={handleEnrollClick}>
+                            Enroll Now
+                          </Button>
+                          <Button variant="outline" className="w-full mb-6 py-6">
+                            Try For Free
+                          </Button>
+                        </>
+                      )}
                       
                       <div className="space-y-3 mb-6">
                         {features.slice(0, 4).map((feature, index) => (
@@ -184,13 +257,15 @@ const CourseDetailPage = () => {
                         ))}
                       </div>
                       
-                      <div className="pt-4 border-t border-border">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span>Course Completion</span>
-                          <span className="font-medium">25%</span>
+                      {isEnrolled && (
+                        <div className="pt-4 border-t border-border">
+                          <Button variant="outline" className="w-full" asChild>
+                            <Link to="/my-courses">
+                              View All My Courses
+                            </Link>
+                          </Button>
                         </div>
-                        <Progress value={25} className="h-2" />
-                      </div>
+                      )}
                     </div>
                   </motion.div>
                 </div>
@@ -542,6 +617,68 @@ const CourseDetailPage = () => {
         </main>
         
         <Footer />
+        
+        {/* Login Dialog */}
+        <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Sign In Required</AlertDialogTitle>
+              <AlertDialogDescription>
+                You need to be signed in to enroll in this course. Would you like to sign in now?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                setShowLoginDialog(false);
+                navigate("/login", { state: { returnTo: `/course/${courseId}` } });
+              }}>
+                Sign In
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        
+        {/* Payment Dialog */}
+        <AlertDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+          <AlertDialogContent className="sm:max-w-[425px]">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Complete Your Purchase</AlertDialogTitle>
+              <AlertDialogDescription>
+                You're about to enroll in <span className="font-semibold">{course.title}</span> for ${course.price}.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4">
+              <div className="rounded-lg overflow-hidden mb-4">
+                <img 
+                  src={course.image} 
+                  alt={course.title}
+                  className="w-full h-32 object-cover"
+                />
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between py-2 border-b">
+                  <span>Course Price</span>
+                  <span className="font-semibold">${course.price}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Tax</span>
+                  <span className="font-semibold">${(course.price * 0.1).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between py-2 font-bold">
+                  <span>Total</span>
+                  <span>${(course.price * 1.1).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handlePaymentComplete}>
+                Complete Purchase
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PageTransition>
   );

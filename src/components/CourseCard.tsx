@@ -1,29 +1,13 @@
+
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, Clock, BarChart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { CourseType } from "@/types/course";
 
-interface CourseCardProps {
-  id: string;
-  title: string;
-  instructor: string;
-  description: string;
-  price: number;
-  rating: number;
+type CourseCardProps = CourseType & {
   reviewCount?: number;
-  duration: string;
-  level: "Beginner" | "Intermediate" | "Advanced" | string;
-  thumbnail?: string;
-  category: string;
-  isFeatured?: boolean;
-  isBestseller?: boolean;
-  hasDiscount?: boolean;
-  originalPrice?: number;
-  reviews?: number;
-  image?: string;
-  students?: number;
-  isPopular?: boolean;
-}
+};
 
 const CourseCard = ({
   id,
@@ -122,9 +106,7 @@ const CourseCard = ({
         
         <p className="text-sm text-muted-foreground mb-3">{instructor}</p>
         
-        <p className="text-sm text-foreground/80 mb-4 line-clamp-2">
-          {description}
-        </p>
+        <p className="text-sm text-foreground/80 mb-4 line-clamp-2">{description}</p>
         
         <div className="flex items-center space-x-4 mb-4 text-sm">
           <div className="flex items-center">
