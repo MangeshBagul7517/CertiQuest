@@ -11,10 +11,10 @@ interface CourseCardProps {
   description: string;
   price: number;
   rating: number;
-  reviewCount: number;
+  reviewCount?: number;
   duration: string;
   level: "Beginner" | "Intermediate" | "Advanced";
-  thumbnail: string;
+  thumbnail?: string;
   category: string;
   isFeatured?: boolean;
   isBestseller?: boolean;
