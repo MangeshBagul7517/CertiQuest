@@ -133,13 +133,13 @@ const Navbar = () => {
           </div>
 
           {/* Admin Login Button */}
-{/*          {!isAdmin && !user && (
+          {!isAdmin && !user && (
             <Link to="/admin/login">
               <Button variant="ghost" size="icon" aria-label="Admin">
                 <Shield size={20} />
               </Button>
             </Link>
-          )} */}
+          )}
 
           {/* Cart */}
           <Link to="/cart">
