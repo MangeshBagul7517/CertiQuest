@@ -18,7 +18,7 @@ const AboutPage = () => {
           
           <div className="aspect-video overflow-hidden rounded-xl shadow-lg">
             <img 
-              src="/placeholder.svg" 
+              src="https://i.ibb.co/C5CG1Rk0/aboutus.jpg" 
               alt="CertiQuest team" 
               className="w-full h-full object-cover"
             />
@@ -63,7 +63,7 @@ const AboutPage = () => {
               </p>
               <div className="relative overflow-hidden rounded-lg shadow-md aspect-video">
                 <img 
-                  src="/placeholder.svg" 
+                  src="https://i.ibb.co/YFnS3zLr/about.png" 
                   alt="CertiQuest vision" 
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
@@ -120,7 +120,7 @@ const AboutPage = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-primary/10 rounded-lg transform rotate-3"></div>
               <img 
-                src="/placeholder.svg" 
+                src="https://i.ibb.co/7tY2md0c/freepik-upload-45356.png" 
                 alt="CertiQuest founder" 
                 className="relative z-10 rounded-lg shadow-lg"
               />
@@ -149,7 +149,7 @@ const AboutPage = () => {
       </section>
       
       {/* Team */}
-      <section className="py-16">
+      {/*<section className="py-16">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight mb-4">Our Leadership Team</h2>
@@ -201,7 +201,7 @@ const AboutPage = () => {
           </div>
         </div>
       </section>
-      
+*/}
       {/* FAQ section */}
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto max-w-3xl">
@@ -212,7 +212,7 @@ const AboutPage = () => {
             </p>
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-6 text-blue-500">
             {[
               {
                 question: "How are CertiQuest certifications recognized in the industry?",

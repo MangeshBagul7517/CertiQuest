@@ -81,9 +81,9 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-semibold mb-2">Phone</h3>
                   <p className="text-sm text-muted-foreground mb-1">Customer Support:</p>
-                  <a href="tel:+919876543210" className="text-primary hover:underline">+91 987 654 3210</a>
+                  <a href="tel:+919876543210" className="text-primary hover:underline">+91 8686656526</a>
                   <p className="text-sm text-muted-foreground mt-2 mb-1">Sales Inquiries:</p>
-                  <a href="tel:+919876543211" className="text-primary hover:underline">+91 987 654 3211</a>
+                  <a href="tel:+919876543211" className="text-primary hover:underline">+91 8686656526</a>
                 </div>
               </CardContent>
             </Card>
@@ -111,7 +111,7 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-semibold mb-2">Address</h3>
                   <p className="text-sm text-muted-foreground">CertiQuest Headquarters</p>
-                  <p className="text-sm text-muted-foreground">123 Education Street</p>
+                  <p className="text-sm text-muted-foreground"></p>
                   <p className="text-sm text-muted-foreground">Mumbai, Maharashtra 400001</p>
                   <p className="text-sm text-muted-foreground">India</p>
                 </div>
@@ -133,7 +133,7 @@ const ContactPage = () => {
               
               <div className="aspect-square md:aspect-video relative overflow-hidden rounded-lg shadow-md">
                 <img 
-                  src="/placeholder.svg" 
+                  src="https://i.ibb.co/ycXMhRfF/contact.jpg" 
                   alt="CertiQuest office" 
                   className="w-full h-full object-cover"
                 />
@@ -261,7 +261,7 @@ const ContactPage = () => {
       </section>
       
       {/* Map Section */}
-      <section className="py-16">
+      {/*<section className="py-16">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight mb-4">Find Us</h2>
@@ -277,7 +277,8 @@ const ContactPage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> 
+      */}
       
       {/* FAQ Section */}
       <section className="py-16 bg-muted/30">
@@ -289,7 +290,7 @@ const ContactPage = () => {
             </p>
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-6 text-blue-500">
             {[
               {
                 question: "How quickly can I expect a response to my inquiry?",

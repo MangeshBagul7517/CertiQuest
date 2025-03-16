@@ -66,8 +66,8 @@ const Index = () => {
             </div>
             <div className="relative overflow-hidden rounded-lg shadow-xl animate-fade-in">
               <img
-                src={heroImages[0] || heroImages[1]}
-                alt="Students learning online"
+                src="https://i.ibb.co/r8w7m4k/student-learning-online.jpg"
+                alt="Students learning"
                 className="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"></div>
@@ -253,7 +253,7 @@ const Index = () => {
               </div>
               <div className="hidden md:block">
                 <img 
-                  src="/placeholder.svg" 
+                  src="https://i.ibb.co/Xxjd2bJT/img1.jpg" 
                   alt="Students celebrating graduation" 
                   className="w-full h-auto rounded-lg shadow-lg"
                 />
