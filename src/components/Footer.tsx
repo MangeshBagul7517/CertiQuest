@@ -1,105 +1,144 @@
 
-import { Link } from "react-router-dom";
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Link } from 'react-router-dom';
+import { ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
 const Footer = () => {
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Add newsletter subscription logic here
+  };
+
   const currentYear = new Date().getFullYear();
-  
+
   return (
-    <footer className="bg-secondary py-16">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <Link to="/" className="inline-block">
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                CertiQuest
-              </span>
-            </Link>
-            <p className="text-muted-foreground text-sm max-w-xs">
-              Empower your future with professional certifications and courses designed to accelerate your career.
-            </p>
-            <div className="flex space-x-4">
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Facebook">
-                <Facebook className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Twitter">
-                <Twitter className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Instagram">
-                <Instagram className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="LinkedIn">
-                <Linkedin className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="YouTube">
-                <Youtube className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
+    <footer className="bg-muted/50 border-t">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
+          {/* Company Info */}
           <div>
-            <h3 className="text-base font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Home</Link></li>
-              <li><Link to="/courses" className="text-sm text-muted-foreground hover:text-primary transition-colors">Courses</Link></li>
-              <li><Link to="/certificates" className="text-sm text-muted-foreground hover:text-primary transition-colors">Certificates</Link></li>
-              <li><Link to="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link to="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-base font-semibold mb-4">Support</h3>
-            <ul className="space-y-2">
-              <li><Link to="/help" className="text-sm text-muted-foreground hover:text-primary transition-colors">Help Center</Link></li>
-              <li><Link to="/faq" className="text-sm text-muted-foreground hover:text-primary transition-colors">FAQ</Link></li>
-              <li><Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link></li>
-              <li><Link to="/refund" className="text-sm text-muted-foreground hover:text-primary transition-colors">Refund Policy</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-base font-semibold mb-4">Subscribe to Our Newsletter</h3>
+            <h3 className="text-lg font-semibold mb-4">CertiQuest</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Get the latest updates on new courses and special offers.
+              Empowering professionals with certified skills for the digital age.
             </p>
-            <div className="space-y-2">
-              <div className="flex space-x-2">
-                <Input 
-                  type="email" 
-                  placeholder="Your email address"
-                  className="bg-white/50"
-                />
-                <Button size="sm" className="shrink-0">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Subscribe
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                By subscribing, you agree to our privacy policy.
-              </p>
+            <div className="flex items-center space-x-4">
+              <Button size="icon" variant="ghost" aria-label="Facebook">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                </svg>
+              </Button>
+              <Button size="icon" variant="ghost" aria-label="Twitter">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+                </svg>
+              </Button>
+              <Button size="icon" variant="ghost" aria-label="Instagram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+                </svg>
+              </Button>
+              <Button size="icon" variant="ghost" aria-label="LinkedIn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                  <rect width="4" height="12" x="2" y="9"></rect>
+                  <circle cx="4" cy="4" r="2"></circle>
+                </svg>
+              </Button>
             </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/courses" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Courses
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Contact
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Info */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Contact</h3>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  123 Education Street, Mumbai, Maharashtra 400001, India
+                </span>
+              </li>
+              <li className="flex items-center">
+                <Phone className="h-5 w-5 mr-2 text-muted-foreground" />
+                <a href="tel:+919876543210" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  +91 987 654 3210
+                </a>
+              </li>
+              <li className="flex items-center">
+                <Mail className="h-5 w-5 mr-2 text-muted-foreground" />
+                <a href="mailto:info@certiquest.com" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  info@certiquest.com
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Subscribe to our newsletter for the latest updates.
+            </p>
+            <form onSubmit={handleSubscribe} className="flex flex-col space-y-2">
+              <Input 
+                type="email" 
+                placeholder="Your email" 
+                required 
+                className="bg-background"
+              />
+              <Button type="submit" className="w-full">
+                Subscribe
+              </Button>
+            </form>
           </div>
         </div>
-        
-        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">
+
+        <Separator className="my-8" />
+
+        {/* Bottom Footer */}
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <p className="text-sm text-muted-foreground mb-4 md:mb-0">
             © {currentYear} CertiQuest. All rights reserved.
           </p>
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+          <div className="flex space-x-6">
+            <Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Privacy Policy
             </Link>
-            <span className="text-muted-foreground">•</span>
-            <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/terms-of-service" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Terms of Service
             </Link>
-            <span className="text-muted-foreground">•</span>
-            <Link to="/cookies" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-              Cookie Policy
+            <Link to="/refund-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Refund Policy
             </Link>
           </div>
         </div>

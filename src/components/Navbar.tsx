@@ -1,227 +1,307 @@
 
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { 
-  Menu, 
-  X, 
-  Search, 
-  User, 
-  ShoppingCart, 
-  LogOut,
-  Settings,
-  PanelRight
-} from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Input } from '@/components/ui/input';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
+import { cn } from '@/lib/utils';
+import { Menu, Search, ShoppingCart, X, User, Shield } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
+import { useAdmin } from '@/contexts/AdminContext';
+
+const NavLink = ({ to, children, className }: { to: string; children: React.ReactNode; className?: string }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "px-4 py-2 text-sm font-medium transition-colors hover:text-primary",
+        isActive ? "text-primary" : "text-foreground/70",
+        className
+      )}
+    >
+      {children}
+    </Link>
+  );
+};
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, logout, isAdmin } = useAuth();
-  
+  const { user, logout } = useAuth();
+  const { totalItems } = useCart();
+  const { isAdmin } = useAdmin();
+
+  // Update scroll state
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close search on route change
   useEffect(() => {
-    setIsMobileMenuOpen(false);
+    setIsSearchOpen(false);
   }, [location]);
 
-  const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Courses", path: "/courses" },
-    { name: "Certificates", path: "/certificates" },
-    { name: "About", path: "/about" },
-    { name: "Contact", path: "/contact" },
-  ];
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to search results
+      window.location.href = `/courses?search=${encodeURIComponent(searchQuery)}`;
+    }
+  };
 
   return (
     <header
-      className={`fixed w-full z-50 transition-all duration-300 ${
-        isScrolled ? "glass-nav py-2" : "bg-transparent py-4"
-      }`}
+      className={cn(
+        "sticky top-0 z-50 w-full transition-all duration-300",
+        isScrolled
+          ? "bg-background/80 backdrop-blur-lg shadow-sm border-b"
+          : "bg-background"
+      )}
     >
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center">
-          <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            CertiQuest
-          </span>
+      <div className="container mx-auto px-4 flex h-16 items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="flex items-center space-x-2">
+          <span className="text-xl font-bold tracking-tight">CertiQuest</span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.path}
-              className={`text-sm font-medium transition-all hover:text-primary ${
-                location.pathname === link.path ? "text-primary" : "text-foreground"
-              }`}
-            >
-              {link.name}
-            </Link>
-          ))}
+        <nav className="hidden md:flex items-center space-x-4">
+          <NavLink to="/">Home</NavLink>
+          <NavLink to="/courses">Courses</NavLink>
+          <NavLink to="/about">About</NavLink>
+          <NavLink to="/contact">Contact</NavLink>
+          {isAdmin && <NavLink to="/admin/dashboard">Admin</NavLink>}
         </nav>
 
-        {/* Desktop Actions */}
+        {/* Desktop Right Section */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Search"
-          >
-            <Search className="h-5 w-5" />
-          </Button>
-          <Link to="/cart">
+          {/* Search */}
+          <div className="relative">
             <Button 
               variant="ghost" 
-              size="icon"
-              aria-label="Shopping Cart"
+              size="icon" 
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              aria-label="Search"
             >
-              <ShoppingCart className="h-5 w-5" />
+              {isSearchOpen ? <X size={20} /> : <Search size={20} />}
             </Button>
-          </Link>
-          
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="User Menu">
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="cursor-pointer"
-                  onClick={() => navigate("/profile")}
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="cursor-pointer"
-                  onClick={() => navigate("/settings")}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                
-                {isAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="cursor-pointer"
-                      onClick={() => navigate("/admin")}
-                    >
-                      <PanelRight className="mr-2 h-4 w-4" />
-                      <span>Admin Dashboard</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                  onClick={logout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Link to="/login">
-              <Button className="font-medium">
-                Sign In
+            
+            {isSearchOpen && (
+              <form 
+                onSubmit={handleSearch}
+                className="absolute right-0 top-full mt-2 bg-background rounded-md shadow-lg border p-2 animate-fade-in"
+              >
+                <div className="flex">
+                  <Input
+                    type="search"
+                    placeholder="Search courses..."
+                    className="w-60"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                  />
+                  <Button type="submit" variant="ghost" size="icon">
+                    <Search size={18} />
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Admin Login Button */}
+          {!isAdmin && !user && (
+            <Link to="/admin/login">
+              <Button variant="ghost" size="icon" aria-label="Admin">
+                <Shield size={20} />
               </Button>
             </Link>
           )}
+
+          {/* Cart */}
+          <Link to="/cart">
+            <Button variant="ghost" size="icon" aria-label="Cart">
+              <ShoppingCart size={20} />
+              {totalItems > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                  {totalItems}
+                </Badge>
+              )}
+            </Button>
+          </Link>
+
+          {/* Auth */}
+          {user ? (
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="bg-transparent">
+                    <User size={18} className="mr-2" />
+                    <span className="text-sm">{user.name.split(' ')[0]}</span>
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[200px] gap-1 p-2">
+                      <li>
+                        <Link to="/dashboard" className={navigationMenuTriggerStyle()}>
+                          Dashboard
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="/dashboard/profile" className={navigationMenuTriggerStyle()}>
+                          Profile
+                        </Link>
+                      </li>
+                      <li>
+                        <button 
+                          onClick={logout} 
+                          className={cn(navigationMenuTriggerStyle(), "w-full text-left")}
+                        >
+                          Logout
+                        </button>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Link to="/login">
+                <Button variant="ghost" size="sm">Login</Button>
+              </Link>
+              <Link to="/register">
+                <Button size="sm">Register</Button>
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label={isMobileMenuOpen ? "Close Menu" : "Open Menu"}
-        >
-          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
-
         {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 glass-card animate-slide-down p-4 md:hidden">
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`text-sm font-medium py-2 px-4 rounded-md transition-colors ${
-                    location.pathname === link.path
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-secondary"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              
-              {user ? (
-                <>
-                  <div className="pt-2 border-t">
-                    <p className="px-4 py-2 text-sm font-medium">Signed in as {user.name}</p>
-                  </div>
-                  
-                  {isAdmin && (
-                    <Link to="/admin" className="text-sm font-medium py-2 px-4 rounded-md hover:bg-secondary">
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={logout}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </Button>
-                </>
-              ) : (
-                <div className="flex flex-col space-y-2 pt-2 border-t">
-                  <Link to="/login">
-                    <Button className="w-full" variant="outline">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link to="/register">
-                    <Button className="w-full">
-                      Register
-                    </Button>
-                  </Link>
-                </div>
+        <div className="flex md:hidden items-center space-x-4">
+          {/* Mobile Search Button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            aria-label="Search"
+          >
+            {isSearchOpen ? <X size={20} /> : <Search size={20} />}
+          </Button>
+
+          {/* Mobile Cart */}
+          <Link to="/cart">
+            <Button variant="ghost" size="icon" aria-label="Cart">
+              <ShoppingCart size={20} />
+              {totalItems > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                  {totalItems}
+                </Badge>
               )}
-            </nav>
-          </div>
-        )}
+            </Button>
+          </Link>
+
+          {/* Mobile Menu Trigger */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Menu">
+                <Menu size={20} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <div className="flex flex-col space-y-4 mt-8">
+                <Link to="/" className="text-lg font-medium py-2 hover:text-primary">
+                  Home
+                </Link>
+                <Link to="/courses" className="text-lg font-medium py-2 hover:text-primary">
+                  Courses
+                </Link>
+                <Link to="/about" className="text-lg font-medium py-2 hover:text-primary">
+                  About
+                </Link>
+                <Link to="/contact" className="text-lg font-medium py-2 hover:text-primary">
+                  Contact
+                </Link>
+                
+                <div className="h-px bg-border my-2" />
+                
+                {user ? (
+                  <>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <User size={18} />
+                      <span>{user.name}</span>
+                    </div>
+                    <Link to="/dashboard" className="text-md py-2 hover:text-primary">
+                      Dashboard
+                    </Link>
+                    <Link to="/dashboard/profile" className="text-md py-2 hover:text-primary">
+                      Profile
+                    </Link>
+                    <button 
+                      onClick={logout} 
+                      className="text-md py-2 text-left hover:text-primary"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex flex-col space-y-2">
+                    <Link to="/login">
+                      <Button variant="outline" className="w-full">Login</Button>
+                    </Link>
+                    <Link to="/register">
+                      <Button className="w-full">Register</Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
+
+      {/* Mobile Search Bar */}
+      {isSearchOpen && (
+        <div className="md:hidden border-t animate-slide-in">
+          <form onSubmit={handleSearch} className="container mx-auto px-4 py-2">
+            <div className="flex">
+              <Input
+                type="search"
+                placeholder="Search courses..."
+                className="flex-1"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+              <Button type="submit" variant="ghost" size="icon">
+                <Search size={18} />
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
     </header>
   );
 };

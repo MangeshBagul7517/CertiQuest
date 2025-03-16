@@ -1,42 +1,22 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { toast } from "sonner";
+import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { toast } from 'sonner';
 
-type User = {
+interface User {
   id: string;
-  email: string;
   name: string;
-  role: "user" | "admin";
-};
+  email: string;
+}
 
-type AuthContextType = {
+interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  isAdmin: boolean;
-};
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock user database for demo purposes
-const MOCK_USERS = [
-  {
-    id: "admin-123",
-    email: "admin@example.com",
-    password: "password123",
-    name: "Admin User",
-    role: "admin" as const,
-  },
-  {
-    id: "user-123",
-    email: "user@example.com",
-    password: "password123",
-    name: "Demo User",
-    role: "user" as const,
-  },
-];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -44,64 +24,89 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const storedUser = localStorage.getItem("user");
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('user');
+      }
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      const foundUser = MOCK_USERS.find(
-        (u) => u.email === email && u.password === password
+      // For demo, check against localStorage
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const foundUser = users.find((u: any) => 
+        u.email.toLowerCase() === email.toLowerCase() && u.password === password
       );
-      
-      if (!foundUser) {
-        throw new Error("Invalid email or password");
+
+      if (foundUser) {
+        const userData = {
+          id: foundUser.id,
+          name: foundUser.name,
+          email: foundUser.email
+        };
+        
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        toast.success('Login successful!');
+        return true;
+      } else {
+        toast.error('Invalid email or password');
+        return false;
       }
-      
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem("user", JSON.stringify(userWithoutPassword));
-      toast.success("Logged in successfully");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Login failed");
-      throw error;
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // For demo, store in localStorage
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
       
-      // Check if user already exists
-      if (MOCK_USERS.some((u) => u.email === email)) {
-        throw new Error("Email already in use");
+      // Check if email already exists
+      if (users.some((u: any) => u.email.toLowerCase() === email.toLowerCase())) {
+        toast.error('Email already registered');
+        return false;
       }
-      
-      // In a real app, we would send this to an API
+
       const newUser = {
-        id: `user-${Date.now()}`,
-        email,
+        id: crypto.randomUUID(),
         name,
-        role: "user" as const,
+        email,
+        password // In a real app, this would be hashed
       };
       
-      setUser(newUser);
-      localStorage.setItem("user", JSON.stringify(newUser));
-      toast.success("Account created successfully");
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      // Auto login
+      const userData = {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email
+      };
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      toast.success('Registration successful!');
+      return true;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Registration failed");
-      throw error;
+      console.error('Registration error:', error);
+      toast.error('An error occurred during registration');
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -109,16 +114,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
-    toast.info("Logged out successfully");
+    localStorage.removeItem('user');
+    toast.info('You have been logged out');
   };
 
-  const isAdmin = user?.role === "admin";
-
   return (
-    <AuthContext.Provider
-      value={{ user, isLoading, login, register, logout, isAdmin }}
-    >
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -127,7 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
