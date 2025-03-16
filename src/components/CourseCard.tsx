@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, Clock, BarChart } from "lucide-react";
@@ -13,14 +12,13 @@ interface CourseCardProps {
   rating: number;
   reviewCount?: number;
   duration: string;
-  level: "Beginner" | "Intermediate" | "Advanced";
+  level: "Beginner" | "Intermediate" | "Advanced" | string;
   thumbnail?: string;
   category: string;
   isFeatured?: boolean;
   isBestseller?: boolean;
   hasDiscount?: boolean;
   originalPrice?: number;
-  // For backward compatibility with existing code
   reviews?: number;
   image?: string;
   students?: number;
@@ -35,15 +33,15 @@ const CourseCard = ({
   price,
   rating,
   reviews,
-  reviewCount = reviews || 0, // Use reviews as fallback
+  reviewCount = reviews || 0,
   duration,
   level,
   image,
-  thumbnail = image || "", // Use image as fallback
+  thumbnail = image || "",
   category,
   isFeatured = false,
   isPopular = false,
-  isBestseller = isPopular, // Map isPopular to isBestseller
+  isBestseller = isPopular,
   hasDiscount = false,
   originalPrice
 }: CourseCardProps) => {
@@ -63,12 +61,17 @@ const CourseCard = ({
     ? Math.round(((originalPrice - price) / originalPrice) * 100) 
     : null;
 
-  // Set level color
+  const normalizedLevel = typeof level === 'string' 
+    ? level === 'Beginner' || level === 'Intermediate' || level === 'Advanced' 
+      ? level 
+      : 'Beginner'
+    : 'Beginner';
+
   const levelColor = {
     Beginner: "bg-green-100 text-green-800",
     Intermediate: "bg-blue-100 text-blue-800",
     Advanced: "bg-purple-100 text-purple-800"
-  }[level];
+  }[normalizedLevel] || "bg-green-100 text-green-800";
 
   return (
     <motion.div 
@@ -107,7 +110,7 @@ const CourseCard = ({
             {category}
           </Badge>
           <Badge variant="outline" className={`text-xs font-medium ${levelColor}`}>
-            {level}
+            {normalizedLevel}
           </Badge>
         </div>
         
@@ -130,7 +133,7 @@ const CourseCard = ({
           </div>
           <div className="flex items-center">
             <BarChart className="h-4 w-4 mr-1 text-muted-foreground" />
-            <span className="text-muted-foreground">{level}</span>
+            <span className="text-muted-foreground">{normalizedLevel}</span>
           </div>
         </div>
         
