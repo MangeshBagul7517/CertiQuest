@@ -1,13 +1,33 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, User, ShoppingCart } from "lucide-react";
+import { 
+  Menu, 
+  X, 
+  Search, 
+  User, 
+  ShoppingCart, 
+  LogOut,
+  Settings,
+  PanelRight
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout, isAdmin } = useAuth();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -76,20 +96,62 @@ const Navbar = () => {
               <ShoppingCart className="h-5 w-5" />
             </Button>
           </Link>
-          <Link to="/login">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              aria-label="User Account"
-            >
-              <User className="h-5 w-5" />
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button className="font-medium">
-              Sign In
-            </Button>
-          </Link>
+          
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="User Menu">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={() => navigate("/profile")}
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={() => navigate("/settings")}
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => navigate("/admin")}
+                    >
+                      <PanelRight className="mr-2 h-4 w-4" />
+                      <span>Admin Dashboard</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={logout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/login">
+              <Button className="font-medium">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -120,18 +182,42 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              <div className="flex flex-col space-y-2 pt-2 border-t">
-                <Link to="/login">
-                  <Button className="w-full" variant="outline">
-                    Sign In
+              
+              {user ? (
+                <>
+                  <div className="pt-2 border-t">
+                    <p className="px-4 py-2 text-sm font-medium">Signed in as {user.name}</p>
+                  </div>
+                  
+                  {isAdmin && (
+                    <Link to="/admin" className="text-sm font-medium py-2 px-4 rounded-md hover:bg-secondary">
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={logout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
                   </Button>
-                </Link>
-                <Link to="/register">
-                  <Button className="w-full">
-                    Register
-                  </Button>
-                </Link>
-              </div>
+                </>
+              ) : (
+                <div className="flex flex-col space-y-2 pt-2 border-t">
+                  <Link to="/login">
+                    <Button className="w-full" variant="outline">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button className="w-full">
+                      Register
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </nav>
           </div>
         )}

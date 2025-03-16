@@ -20,6 +20,11 @@ interface CourseCardProps {
   isBestseller?: boolean;
   hasDiscount?: boolean;
   originalPrice?: number;
+  // For backward compatibility with existing code
+  reviews?: number;
+  image?: string;
+  students?: number;
+  isPopular?: boolean;
 }
 
 const CourseCard = ({
@@ -29,13 +34,16 @@ const CourseCard = ({
   description,
   price,
   rating,
-  reviewCount,
+  reviews,
+  reviewCount = reviews || 0, // Use reviews as fallback
   duration,
   level,
-  thumbnail,
+  image,
+  thumbnail = image || "", // Use image as fallback
   category,
   isFeatured = false,
-  isBestseller = false,
+  isPopular = false,
+  isBestseller = isPopular, // Map isPopular to isBestseller
   hasDiscount = false,
   originalPrice
 }: CourseCardProps) => {
@@ -67,7 +75,7 @@ const CourseCard = ({
       whileHover={{ y: -5 }}
       className="group glass-card rounded-lg overflow-hidden transition-all duration-300 h-full flex flex-col"
     >
-      <Link to={`/courses/${id}`} className="block overflow-hidden relative">
+      <Link to={`/course/${id}`} className="block overflow-hidden relative">
         <div className="aspect-video w-full relative overflow-hidden image-loading">
           <img
             src={thumbnail}
@@ -103,7 +111,7 @@ const CourseCard = ({
           </Badge>
         </div>
         
-        <Link to={`/courses/${id}`} className="block">
+        <Link to={`/course/${id}`} className="block">
           <h3 className="text-lg font-semibold mb-1 transition-colors group-hover:text-primary line-clamp-2">
             {title}
           </h3>
@@ -130,7 +138,7 @@ const CourseCard = ({
           <div className="flex items-center space-x-1">
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
             <span className="font-medium">{rating.toFixed(1)}</span>
-            <span className="text-sm text-muted-foreground">({reviewCount})</span>
+            <span className="text-sm text-muted-foreground">({reviewCount || reviews || 0})</span>
           </div>
           
           <div className="text-right">
