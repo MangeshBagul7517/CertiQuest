@@ -147,11 +147,7 @@ const LoginPage = () => {
             </p>
           </div>
 
-          <div className="mt-8 text-center text-xs text-muted-foreground">
-            <p>Demo credentials:</p>
-            <p>Admin: admin@example.com / password123</p>
-            <p>User: user@example.com / password123</p>
-          </div>
+
         </motion.div>
       </div>
     </PageTransition>
