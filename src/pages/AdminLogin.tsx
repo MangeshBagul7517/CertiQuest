@@ -34,7 +34,7 @@ const AdminLogin = () => {
     
     try {
       // For demo, check if admin credentials
-      if (email === "admin@certiquest.com" && password === "Mangesh@7517") {
+      if (email === "admin@certiquest.com" && password === "admin123") {
         localStorage.setItem('adminAuth', 'true');
         toast.success("Admin login successful!");
         navigate("/admin/dashboard");
@@ -73,7 +73,7 @@ const AdminLogin = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@example.com"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

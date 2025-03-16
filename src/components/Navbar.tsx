@@ -94,7 +94,7 @@ const Navbar = () => {
           <NavLink to="/courses">Courses</NavLink>
           <NavLink to="/about">About</NavLink>
           <NavLink to="/contact">Contact</NavLink>
-          {isAdmin && <NavLink to="/admin/dashboard">Admin</NavLink>}
+          {/*{isAdmin && <NavLink to="/admin/dashboard">Admin</NavLink>} */}
         </nav>
 
         {/* Desktop Right Section */}
@@ -133,13 +133,13 @@ const Navbar = () => {
           </div>
 
           {/* Admin Login Button */}
-          {!isAdmin && !user && (
+{/*}          {!isAdmin && !user && (
             <Link to="/admin/login">
               <Button variant="ghost" size="icon" aria-label="Admin">
                 <Shield size={20} />
               </Button>
             </Link>
-          )}
+          )} */}
 
           {/* Cart */}
           <Link to="/cart">
