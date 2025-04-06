@@ -30,8 +30,8 @@ const Checkout = () => {
       setIsProcessing(false);
       clearCart();
       toast({
-        title: "Payment successful",
-        description: "Thank you for your purchase! You can now access your courses.",
+        title: "Please Proceed with payment",
+        description: "Kindly contact us if you have any queries",
       });
       navigate("/dashboard");
     }, 2000);
@@ -51,28 +51,22 @@ const Checkout = () => {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-6">Payment Information</h2>
+                <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="cardName">Name on Card</Label>
+                      <Label htmlFor="cardName">Name</Label>
                       <Input id="cardName" placeholder="John Doe" required />
                     </div>
                     
                     <div>
-                      <Label htmlFor="cardNumber">Card Number</Label>
-                      <Input id="cardNumber" placeholder="1234 5678 9012 3456" required />
+                      <Label htmlFor="cardNumber">Contact Number</Label>
+                      <Input id="cardNumber" placeholder="+91 9876543210" required />
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="expiryDate">Expiry Date</Label>
-                        <Input id="expiryDate" placeholder="MM/YY" required />
-                      </div>
-                      <div>
-                        <Label htmlFor="cvc">CVC</Label>
-                        <Input id="cvc" placeholder="123" required />
-                      </div>
+
+                    <div>
+                      <Label htmlFor="cardNumber">Email Address</Label>
+                      <Input id="cardNumber" placeholder="yourname@mail.com" required />
                     </div>
                   </div>
                   

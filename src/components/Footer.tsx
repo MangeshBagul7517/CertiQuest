@@ -85,13 +85,13 @@ const Footer = () => {
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  123 Education Street, Mumbai, Maharashtra 400001, India
+                  Education Street, Mumbai, Maharashtra 400001, India
                 </span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-2 text-muted-foreground" />
-                <a href="tel:+919876543210" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  +91 987 654 3210
+                <a href="tel:+918686656526" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  +91 8686656526
                 </a>
               </li>
               <li className="flex items-center">
