@@ -17,21 +17,21 @@ export interface Course {
 export const courses: Course[] = [
   {
     id: "1",
-    title: "Introduction to Cybersecurity",
+    title: "Artificial Intelligence with Deep learning",
     description: "Learn the fundamentals of cybersecurity, including network security, cryptography, and security best practices.",
-    price: 4999,
+    price: 150,
     duration: "4 weeks",
     image: "/placeholder.svg",
-    instructor: "Dr. Security Expert",
+    instructor: "AI Specielist",
     level: "Beginner",
     details: "This course covers the essentials of cybersecurity including threat detection, vulnerability assessment, and security frameworks. Students will learn practical skills needed to protect digital assets and implement security protocols.",
     currency: "₹"
   },
   {
     id: "2",
-    title: "Advanced Ethical Hacking",
+    title: "Microsoft Project BEGINNER to EXPERT Training",
     description: "Master advanced techniques in ethical hacking and penetration testing to protect systems from cyber threats.",
-    price: 7999,
+    price: 150,
     duration: "8 weeks",
     image: "/placeholder.svg",
     instructor: "Prof. Hack Master",
@@ -41,7 +41,7 @@ export const courses: Course[] = [
   },
   {
     id: "3",
-    title: "Cloud Security Fundamentals",
+    title: "Microsoft Azure Administrator",
     description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
     price: 5999,
     duration: "6 weeks",
@@ -50,7 +50,139 @@ export const courses: Course[] = [
     level: "Intermediate",
     details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
     currency: "₹"
-  }
+  },
+  {
+    id: "4",
+    title: "Introduction to Cyber Security",
+    description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+    price: 5999,
+    duration: "6 weeks",
+    image: "/placeholder.svg",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+    currency: "₹"
+  },
+  {
+    id: "5",
+    title: "AWS Master Class Databases In The Cloud",
+    description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+    price: 5999,
+    duration: "6 weeks",
+    image: "/placeholder.svg",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+    currency: "₹"
+  },
+  {
+    id: "6",
+    title: "Learning VMware vSAN",
+    description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+    price: 5999,
+    duration: "6 weeks",
+    image: "/placeholder.svg",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+    currency: "₹"
+  },
+  {
+    id: "7",
+  title: "Big Data Specialty",
+  description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+  price: 5999,
+  duration: "6 weeks",
+  image: "/placeholder.svg",
+  instructor: "Cloud Security Expert",
+  level: "Intermediate",
+  details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+  currency: "₹"
+},
+{
+  id: "8",
+title: "Big Data Analytics with AWS and Microsoft Azure",
+description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+price: 5999,
+duration: "6 weeks",
+image: "/placeholder.svg",
+instructor: "Cloud Security Expert",
+level: "Intermediate",
+details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+currency: "₹"
+},
+{
+  id: "9",
+title: "Microsoft Office 365 SharePoint",
+description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+price: 5999,
+duration: "6 weeks",
+image: "/placeholder.svg",
+instructor: "Cloud Security Expert",
+level: "Intermediate",
+details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+currency: "₹"
+},
+{
+  id: "10",
+title: "Photoshop Training From Beginner to Pro",
+description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+price: 5999,
+duration: "6 weeks",
+image: "/placeholder.svg",
+instructor: "Cloud Security Expert",
+level: "Intermediate",
+details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+currency: "₹"
+},
+{
+  id: "11",
+title: "Business Intelligence Analyst",
+description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+price: 5999,
+duration: "6 weeks",
+image: "/placeholder.svg",
+instructor: "Cloud Security Expert",
+level: "Intermediate",
+details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+currency: "₹"
+},
+{
+  id: "12",
+title: "Business Intelligence Analyst",
+description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+price: 5999,
+duration: "6 weeks",
+image: "/placeholder.svg",
+instructor: "Cloud Security Expert",
+level: "Intermediate",
+details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+currency: "₹"
+},
+{
+  id: "13",
+title: "Intro to Project Management",
+description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+price: 5999,
+duration: "6 weeks",
+image: "/placeholder.svg",
+instructor: "Cloud Security Expert",
+level: "Intermediate",
+details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+currency: "₹"
+},
+{
+  id: "14",
+title: "PHP Full Stack Web Development",
+description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+price: 5999,
+duration: "6 weeks",
+image: "/placeholder.svg",
+instructor: "Cloud Security Expert",
+level: "Intermediate",
+details: "This course focuses on securing cloud environments across AWS, Azure, and Google Cloud. Students will learn about identity and access management, data protection strategies, and security compliance in cloud environments.",
+currency: "₹"
+},
 ];
 
 // Function to load courses (with optional filtering)
