@@ -46,6 +46,8 @@ const Checkout = () => {
     <Layout>
       <div className="container mx-auto py-8 max-w-5xl">
         <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+        <h2 className="text-xl font-semibold mb-6">Note : Kindly take a screenshot of the order summary present on right for your reference and further use</h2>
+
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
