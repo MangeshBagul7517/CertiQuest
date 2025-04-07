@@ -96,9 +96,9 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-semibold mb-2">Email</h3>
                   <p className="text-sm text-muted-foreground mb-1">General Inquiries:</p>
-                  <a href="mailto:info@certiquest.com" className="text-primary hover:underline">info@certiquest.com</a>
+                  <a href="mailto:info@certiquest.store" className="text-primary hover:underline">info@certiquest.store</a>
                   <p className="text-sm text-muted-foreground mt-2 mb-1">Support:</p>
-                  <a href="mailto:support@certiquest.com" className="text-primary hover:underline">support@certiquest.com</a>
+                  <a href="mailto:support@certiquest.store" className="text-primary hover:underline">support@certiquest.store</a>
                 </div>
               </CardContent>
             </Card>
