@@ -38,7 +38,7 @@ export const courses: CourseType[] = [
     title: "Microsoft Project BEGINNER to EXPERT",
     description: "Learn Microsoft Project from scratch to expert level. Manage projects like a pro.",
     price: 199,
-    duration: "8 weeks",
+    duration: "4 weeks",
     image: "https://i.ibb.co/PHy9hd0/m.jpg",
     instructor: "Prof. Hack Master",
     level: "Advanced",
