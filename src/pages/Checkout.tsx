@@ -123,7 +123,7 @@ const Checkout = () => {
                       <Label htmlFor="phone">Contact Number</Label>
                       <Input 
                         id="phone" 
-                        placeholder="+91 987654XXXX" 
+                        placeholder="+91 98765XXXXX" 
                         required 
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
