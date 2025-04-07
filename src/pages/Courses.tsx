@@ -32,8 +32,15 @@ const Courses = () => {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const filtered = await loadCourses(searchQuery);
-    setFilteredCourses(filtered);
+    // Modified this line to match the loadCourses function signature
+    const filtered = await loadCourses();
+    // Apply filtering on the client side instead
+    const results = filtered.filter(course => 
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.instructor.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredCourses(results);
     setIsLoading(false);
   };
 

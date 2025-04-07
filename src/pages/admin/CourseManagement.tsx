@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
-import { Course, courses as initialCourses } from '@/lib/data';
+import { loadCourses } from '@/lib/data';
+import { Course } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -11,10 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Edit, Plus, Trash2, Link as LinkIcon } from 'lucide-react';
 
-// Extended Course type with driveLink
-interface ExtendedCourse extends Course {
-  driveLink?: string;
-}
+// Extended Course type stays the same as Course interface now has driveLink
+type ExtendedCourse = Course;
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState<ExtendedCourse[]>([]);
@@ -34,6 +32,7 @@ const CourseManagement = () => {
   const [details, setDetails] = useState('');
   const [currency, setCurrency] = useState('₹');
   const [driveLink, setDriveLink] = useState('');
+  const [category, setCategory] = useState('Development');
   
   useEffect(() => {
     // Load courses from localStorage or use initial courses
@@ -41,8 +40,12 @@ const CourseManagement = () => {
     if (storedCourses) {
       setCourses(JSON.parse(storedCourses));
     } else {
-      setCourses(initialCourses);
-      localStorage.setItem('courses', JSON.stringify(initialCourses));
+      const fetchInitialCourses = async () => {
+        const initialCourses = await loadCourses();
+        setCourses(initialCourses);
+        localStorage.setItem('courses', JSON.stringify(initialCourses));
+      };
+      fetchInitialCourses();
     }
   }, []);
   
@@ -62,6 +65,7 @@ const CourseManagement = () => {
     setDetails('');
     setCurrency('₹');
     setDriveLink('');
+    setCategory('Development');
   };
   
   const openEditDialog = (course: ExtendedCourse) => {
@@ -76,6 +80,7 @@ const CourseManagement = () => {
     setDetails(course.details || '');
     setCurrency(course.currency || '₹');
     setDriveLink(course.driveLink || '');
+    setCategory(course.category || 'Development');
     setIsEditDialogOpen(true);
   };
   
@@ -97,6 +102,7 @@ const CourseManagement = () => {
       details,
       currency,
       driveLink,
+      category, // Add the category field
       // Adding other necessary fields
       students: 0,
       reviews: 0,
@@ -129,7 +135,8 @@ const CourseManagement = () => {
       level,
       details,
       currency,
-      driveLink
+      driveLink,
+      category
     };
     
     const updatedCourses = courses.map(c => 

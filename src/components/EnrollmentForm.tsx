@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -35,7 +35,7 @@ export default function EnrollmentForm() {
   const [courses, setCourses] = useState<any[]>([]);
   const navigate = useNavigate();
 
-  useState(() => {
+  useEffect(() => {
     const fetchCourses = async () => {
       const allCourses = await loadCourses();
       setCourses(allCourses);
@@ -62,8 +62,11 @@ export default function EnrollmentForm() {
       const enrollments = JSON.parse(localStorage.getItem('enrollmentRequests') || '[]');
       
       const newEnrollment: EnrollmentFormType = {
-        ...values,
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
         courseId: values.courseId,
+        message: values.message || "",
       };
       
       enrollments.push(newEnrollment);
