@@ -54,7 +54,7 @@ export const courses: CourseType[] = [
     title: "Microsoft Azure Administrator",
     description: "Become a certified Azure Administrator. Manage cloud infrastructure with confidence.",
     price: 199,
-    duration: "6 weeks",
+    duration: "4 weeks",
     image: "https://i.ibb.co/5pSJLQ9/mza.webp",
     instructor: "Cloud Security Expert",
     level: "Intermediate",
