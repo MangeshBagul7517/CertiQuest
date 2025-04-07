@@ -32,29 +32,21 @@ const ContactPage = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({ ...prev, inquiryType: value }));
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-  
-    const serviceId = 'service_thsqvbl';
-    const templateId = 'template_f01rwdk';
-    const publicKey = 'A03Sp9-R1d-_KvjBY';
-  
-    try {
-      await emailjs.send(
-        serviceId,
-        templateId,
-        {
-          from_name: formData.name,
-          from_email: formData.email,
-          phone: formData.phone,
-          inquiry_type: formData.inquiryType,
-          subject: formData.subject,
-          message: formData.message,
-        },
-        publicKey
-      );
-      
+    
+    // Simulate form submission
+    setTimeout(() => {
       toast.success('Message sent successfully! We will get back to you soon.');
       setFormData({
         name: '',
@@ -64,14 +56,7 @@ const ContactPage = () => {
         message: '',
         inquiryType: ''
       });
-    } catch (error) {
-      console.error('Email sending error:', error);
-      toast.error('Something went wrong. Please try again.');
-    } finally {
       setIsSubmitting(false);
-    }
-  };
-  
     }, 1500);
   };
   
