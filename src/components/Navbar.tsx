@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -131,15 +130,6 @@ const Navbar = () => {
               </form>
             )}
           </div>
-
-          {/* Admin Login Button */}
-          {!isAdmin && !user && (
-            <Link to="/admin/login">
-              <Button variant="ghost" size="icon" aria-label="Admin">
-                <Shield size={20} />
-              </Button>
-            </Link>
-          )}
 
           {/* Cart */}
           <Link to="/cart" className="relative">
