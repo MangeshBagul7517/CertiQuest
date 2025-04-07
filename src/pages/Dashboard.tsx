@@ -7,11 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { LogOut, User, Settings, BookOpen, ExternalLink, Lock } from "lucide-react";
+import { LogOut, User, Settings, BookOpen, ExternalLink, Lock, LayoutDashboard } from "lucide-react";
 import { Course } from "@/lib/types";
 import { loadCourses } from "@/lib/data";
 import EnrollmentForm from "@/components/EnrollmentForm";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
+import Layout from "@/components/Layout";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -112,6 +113,17 @@ const EnrolledCourses = () => {
   if (enrolledCourses.length === 0) {
     return (
       <div className="py-8">
+        <div className="mb-6">
+          <h3 className="text-xl font-medium mb-2">You haven't enrolled in any courses yet</h3>
+          <div className="flex flex-col md:flex-row gap-4 mt-4">
+            <Link to="/courses">
+              <Button>
+                <BookOpen className="mr-2 h-4 w-4" />
+                Browse Courses
+              </Button>
+            </Link>
+          </div>
+        </div>
         <EnrollmentForm />
       </div>
     );
@@ -119,7 +131,15 @@ const EnrolledCourses = () => {
   
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">My Courses</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">My Courses</h2>
+        <Link to="/courses">
+          <Button variant="outline">
+            <BookOpen className="mr-2 h-4 w-4" />
+            Browse More Courses
+          </Button>
+        </Link>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {enrolledCourses.map(course => (
@@ -233,7 +253,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <Layout>
       <div className="container mx-auto py-8 px-4 md:px-6">
         <header className="mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -289,7 +309,7 @@ const Dashboard = () => {
           <Route path="settings" element={null} />
         </Routes>
       </div>
-    </div>
+    </Layout>
   );
 };
 
