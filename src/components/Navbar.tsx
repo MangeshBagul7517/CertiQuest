@@ -93,7 +93,7 @@ const Navbar = () => {
           <NavLink to="/courses">Courses</NavLink>
           <NavLink to="/about">About</NavLink>
           <NavLink to="/contact">Contact</NavLink>
-          {isAdmin && <NavLink to="/admin/dashboard">Admin</NavLink>}
+          <NavLink to="/admin/dashboard">Admin</NavLink>
         </nav>
 
         {/* Desktop Right Section */}

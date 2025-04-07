@@ -11,7 +11,7 @@ const AdminProtectedRoute = () => {
   useEffect(() => {
     if (!checkAdminStatus()) {
       toast.error('Admin access required');
-      navigate('https://www.certiquest.store/admin/login');
+      navigate('/admin/login');
     }
   }, [navigate, checkAdminStatus]);
   
