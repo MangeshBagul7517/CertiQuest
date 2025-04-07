@@ -33,7 +33,7 @@ const Checkout = () => {
         title: "Please Proceed with payment",
         description: "Kindly contact us if you have any queries",
       });
-      navigate("/dashboard");
+      window.location.href = "https://payments.cashfree.com/forms?code=certiqiest";
     }, 2000);
   };
 
@@ -135,7 +135,7 @@ const Checkout = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Tax</span>
-                    <span>₹0</span>
+                    <span>18%</span>
                   </div>
                 </div>
                 
