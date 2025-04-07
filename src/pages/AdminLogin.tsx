@@ -34,7 +34,7 @@ const AdminLogin = () => {
     
     try {
       // For demo, check if admin credentials
-      if (email === "admin@certiquest.store" && password === "admin123") {
+      if (email === "mangeshbbagul@gmail.com" && password === "Mangesh@1122") {
         localStorage.setItem('adminAuth', 'true');
         toast.success("Admin login successful!");
         navigate("/admin/dashboard");
