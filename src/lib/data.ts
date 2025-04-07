@@ -1,20 +1,21 @@
+import { Course as CourseType } from './types';
 
-// Define Course interface
-export interface Course {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  duration: string;
-  image: string;
-  instructor: string;
-  level: string;
-  details?: string;
-  currency?: string;
-}
+// Helper function to load courses from localStorage or initial data
+export const loadCourses = async (): Promise<CourseType[]> => {
+  const storedCourses = localStorage.getItem('courses');
+  if (storedCourses) {
+    return JSON.parse(storedCourses);
+  }
+  return courses;
+};
 
-// Sample course data
-export const courses: Course[] = [
+// Export the CourseType for use in other components
+export type Course = CourseType & {
+  driveLink?: string;
+};
+
+// Initial courses data
+export const courses: CourseType[] = [
   {
     id: "1",
     title: "Artificial Intelligence with Deep learning",
@@ -89,102 +90,86 @@ export const courses: Course[] = [
   },
   {
     id: "7",
-  title: "Big Data Specialty",
-  description: "Specialize in Big Data technologies and analytics platforms.",
-  price: 199,
-  duration: "6 weeks",
-  image: "https://i.ibb.co/235qrJH8/bigdata.png",
-  instructor: "Cloud Security Expert",
-  level: "Intermediate",
-  details: "Master core Big Data concepts including Hadoop, Spark, and data warehousing. Learn to handle, store, and analyze massive datasets and prepare for Big Data certification exams.",
-  currency: "₹"
-},
-{
-  id: "8",
-title: "Big Data Analytics with AWS and Microsoft Azure",
-description: "Analyze big data using AWS and Azure tools effectively.",
-price: 199,
-duration: "6 weeks",
-image: "https://i.ibb.co/fdXRBVRg/Big-Data-analytics.jpg",
-instructor: "Cloud Security Expert",
-level: "Intermediate",
-details: "Dive into cloud-based big data analytics using Amazon Web Services and Microsoft Azure. Learn about data lakes, real-time analytics, machine learning integrations, and visualization to build powerful data-driven solutions.",
-currency: "₹"
-},
-{
-  id: "9",
-title: "Microsoft Office 365 SharePoint",
-description: "Master SharePoint for seamless team collaboration and content management.",
-price: 199,
-duration: "6 weeks",
-image: "https://i.ibb.co/8qQFtXD/Sharepoint-Office-new.webp",
-instructor: "Cloud Security Expert",
-level: "Intermediate",
-details: "Learn how to build, manage, and customize SharePoint sites with Office 365. Understand document libraries, workflows, permissions, and integrations to boost organizational productivity.",
-currency: "₹"
-},
-{
-  id: "10",
-title: "Photoshop Training From Beginner to Pro",
-description: "Learn Photoshop from basics to expert-level editing and design.",
-price: 199,
-duration: "6 weeks",
-image: "https://i.ibb.co/YFGzHL9h/maxresdefault.jpg",
-instructor: "Cloud Security Expert",
-level: "Intermediate",
-details: "Master Adobe Photoshop tools and techniques, from simple edits to complex compositions. This course covers retouching, graphic design, UI/UX mockups, and creative projects to help you build a professional design portfolio.",
-currency: "₹"
-},
-{
-  id: "11",
-title: "Business Intelligence Analyst",
-description: "Become a skilled Business Intelligence Analyst. Turn data into decisions.",
-price: 199,
-duration: "6 weeks",
-image: "https://i.ibb.co/SwZVbGRx/CP-Business-Intelligence-Analyst.jpg",
-instructor: "Cloud Security Expert",
-level: "Intermediate",
-details: "Learn how to gather, analyze, and visualize business data using BI tools like Power BI, Tableau, and SQL. Understand business strategy and decision-making based on data-driven insights.",
-currency: "₹"
-},
-{
-  id: "12",
-title: "Intro to Project Management",
-description: "Learn the basics of project management and key methodologies.",
-price: 199,
-duration: "6 weeks",
-image: "https://i.ibb.co/YTP1hgTc/pm.png",
-instructor: "Cloud Security Expert",
-level: "Intermediate",
-details: "This course introduces you to project planning, execution, monitoring, and closure. Explore popular methodologies like Agile, Scrum, and Waterfall to manage projects efficiently across industries.",
-currency: "₹"
-},
-{
-  id: "13",
-title: "PHP Full Stack Web Development",
-description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
-price: 199,
-duration: "6 weeks",
-image: "https://i.ibb.co/Kjd67M9s/phpwd.webp",
-instructor: "Cloud Security Expert",
-level: "Intermediate",
-details: "Learn frontend skills (HTML, CSS, JavaScript) and backend PHP development. Work with databases like MySQL, create APIs, and deploy full-stack web applications with real-world projects to kickstart your career in web development.",
-currency: "₹"
-},
+    title: "Big Data Specialty",
+    description: "Specialize in Big Data technologies and analytics platforms.",
+    price: 199,
+    duration: "6 weeks",
+    image: "https://i.ibb.co/235qrJH8/bigdata.png",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "Master core Big Data concepts including Hadoop, Spark, and data warehousing. Learn to handle, store, and analyze massive datasets and prepare for Big Data certification exams.",
+    currency: "₹"
+  },
+  {
+    id: "8",
+    title: "Big Data Analytics with AWS and Microsoft Azure",
+    description: "Analyze big data using AWS and Azure tools effectively.",
+    price: 199,
+    duration: "6 weeks",
+    image: "https://i.ibb.co/fdXRBVRg/Big-Data-analytics.jpg",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "Dive into cloud-based big data analytics using Amazon Web Services and Microsoft Azure. Learn about data lakes, real-time analytics, machine learning integrations, and visualization to build powerful data-driven solutions.",
+    currency: "₹"
+  },
+  {
+    id: "9",
+    title: "Microsoft Office 365 SharePoint",
+    description: "Master SharePoint for seamless team collaboration and content management.",
+    price: 199,
+    duration: "6 weeks",
+    image: "https://i.ibb.co/8qQFtXD/Sharepoint-Office-new.webp",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "Learn how to build, manage, and customize SharePoint sites with Office 365. Understand document libraries, workflows, permissions, and integrations to boost organizational productivity.",
+    currency: "₹"
+  },
+  {
+    id: "10",
+    title: "Photoshop Training From Beginner to Pro",
+    description: "Learn Photoshop from basics to expert-level editing and design.",
+    price: 199,
+    duration: "6 weeks",
+    image: "https://i.ibb.co/YFGzHL9h/maxresdefault.jpg",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "Master Adobe Photoshop tools and techniques, from simple edits to complex compositions. This course covers retouching, graphic design, UI/UX mockups, and creative projects to help you build a professional design portfolio.",
+    currency: "₹"
+  },
+  {
+    id: "11",
+    title: "Business Intelligence Analyst",
+    description: "Become a skilled Business Intelligence Analyst. Turn data into decisions.",
+    price: 199,
+    duration: "6 weeks",
+    image: "https://i.ibb.co/SwZVbGRx/CP-Business-Intelligence-Analyst.jpg",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "Learn how to gather, analyze, and visualize business data using BI tools like Power BI, Tableau, and SQL. Understand business strategy and decision-making based on data-driven insights.",
+    currency: "₹"
+  },
+  {
+    id: "12",
+    title: "Intro to Project Management",
+    description: "Learn the basics of project management and key methodologies.",
+    price: 199,
+    duration: "6 weeks",
+    image: "https://i.ibb.co/YTP1hgTc/pm.png",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "This course introduces you to project planning, execution, monitoring, and closure. Explore popular methodologies like Agile, Scrum, and Waterfall to manage projects efficiently across industries.",
+    currency: "₹"
+  },
+  {
+    id: "13",
+    title: "PHP Full Stack Web Development",
+    description: "Understand how to secure cloud infrastructure and applications across major cloud platforms.",
+    price: 199,
+    duration: "6 weeks",
+    image: "https://i.ibb.co/Kjd67M9s/phpwd.webp",
+    instructor: "Cloud Security Expert",
+    level: "Intermediate",
+    details: "Learn frontend skills (HTML, CSS, JavaScript) and backend PHP development. Work with databases like MySQL, create APIs, and deploy full-stack web applications with real-world projects to kickstart your career in web development.",
+    currency: "₹"
+  },
 ];
-
-// Function to load courses (with optional filtering)
-export const loadCourses = async (filter?: string): Promise<Course[]> => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  if (!filter) {
-    return courses;
-  }
-  
-  // Filter courses based on search query
-  return courses.filter(course => 
-    course.title.toLowerCase().includes(filter.toLowerCase()) || 
-    course.description.toLowerCase().includes(filter.toLowerCase())
-  );
-};

@@ -1,15 +1,14 @@
-
-import { useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { LogOut, User, Settings, BookOpen } from "lucide-react";
+import { LogOut, User, Settings, BookOpen, ExternalLink } from "lucide-react";
+import { Course, loadCourses } from "@/lib/data";
 
-// Dashboard sub-components
 const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -53,7 +52,6 @@ const Profile = () => {
             <Separator />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Profile information fields would go here, static for now */}
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground mb-1">Full Name</h4>
                 <p>{user?.name || "User"}</p>
@@ -79,22 +77,74 @@ const Profile = () => {
 };
 
 const EnrolledCourses = () => {
+  const { user } = useAuth();
+  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      if (!user || !user.enrolledCourses || user.enrolledCourses.length === 0) {
+        setEnrolledCourses([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      const allCourses = await loadCourses();
+      const userCourses = allCourses.filter(course => 
+        user.enrolledCourses?.includes(course.id)
+      );
+      
+      setEnrolledCourses(userCourses);
+      setIsLoading(false);
+    };
+    
+    fetchEnrolledCourses();
+  }, [user]);
+  
+  if (isLoading) {
+    return <div className="text-center py-8">Loading your courses...</div>;
+  }
+  
+  if (enrolledCourses.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <h3 className="text-lg font-medium mb-2">You haven't enrolled in any courses yet</h3>
+        <p className="text-muted-foreground mb-4">Browse our courses and start learning today</p>
+        <Link to="/courses">
+          <Button>Browse Courses</Button>
+        </Link>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">My Courses</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Example enrolled course cards */}
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i} className="overflow-hidden">
-            <div className="aspect-video bg-slate-100"></div>
+        {enrolledCourses.map(course => (
+          <Card key={course.id} className="overflow-hidden">
+            <div className="aspect-video bg-slate-100">
+              <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
+            </div>
             <CardContent className="p-4">
-              <h3 className="font-semibold text-lg mb-2">Course {i + 1}</h3>
+              <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
               <div className="flex justify-between text-sm text-muted-foreground mb-4">
-                <span>Progress: 60%</span>
-                <span>4h 30m</span>
+                <span>{course.instructor}</span>
+                <span>{course.duration}</span>
               </div>
-              <Button size="sm" className="w-full">Continue Learning</Button>
+              {course.driveLink ? (
+                <a href={course.driveLink} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" className="w-full">
+                    Access Course Material
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </Button>
+                </a>
+              ) : (
+                <div className="text-center p-2 text-sm text-muted-foreground">
+                  Course material will be available soon
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -122,7 +172,6 @@ const AccountSettings = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Email Notifications</h3>
             <div className="space-y-2">
-              {/* Notification settings would go here */}
               <p className="text-muted-foreground">
                 Notification settings will be available soon.
               </p>
@@ -132,7 +181,6 @@ const AccountSettings = () => {
             
             <h3 className="text-lg font-medium">Password</h3>
             <div className="space-y-2">
-              {/* Password change form would go here */}
               <p className="text-muted-foreground">
                 Password change feature will be available soon.
               </p>
@@ -152,16 +200,20 @@ const AccountSettings = () => {
   );
 };
 
-// Main Dashboard component
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState("profile");
   
-  // If not logged in, redirect to login
   if (!user) {
     navigate("/login");
     return null;
   }
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    navigate(`/dashboard${value === "profile" ? "" : `/${value}`}`);
+  };
   
   const handleLogout = () => {
     logout();
@@ -177,36 +229,30 @@ const Dashboard = () => {
               <h1 className="text-3xl font-bold">Dashboard</h1>
               <p className="text-muted-foreground">Welcome back, {user?.name || "User"}</p>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
+            <Button variant="outline" onClick={handleLogout} className="mt-4 md:mt-0">
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
           </div>
           
-          <Tabs defaultValue="profile" className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full md:w-auto grid-cols-3 mb-8">
-              <TabsTrigger value="profile" onClick={() => navigate("/dashboard")}>
+              <TabsTrigger value="profile">
                 <User className="h-4 w-4 mr-2" />
                 <span className="hidden md:inline">Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="courses" onClick={() => navigate("/dashboard/courses")}>
+              <TabsTrigger value="courses">
                 <BookOpen className="h-4 w-4 mr-2" />
                 <span className="hidden md:inline">My Courses</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" onClick={() => navigate("/dashboard/settings")}>
+              <TabsTrigger value="settings">
                 <Settings className="h-4 w-4 mr-2" />
                 <span className="hidden md:inline">Settings</span>
               </TabsTrigger>
             </TabsList>
             
-            {/* This content will be managed by nested routes */}
             <TabsContent value="profile">
-              <Routes>
-                <Route index element={<Profile />} />
-                <Route path="courses" element={<EnrolledCourses />} />
-                <Route path="settings" element={<AccountSettings />} />
-                <Route path="*" element={<Profile />} />
-              </Routes>
+              <Profile />
             </TabsContent>
             <TabsContent value="courses">
               <EnrolledCourses />
@@ -216,6 +262,12 @@ const Dashboard = () => {
             </TabsContent>
           </Tabs>
         </header>
+
+        <Routes>
+          <Route index element={null} />
+          <Route path="courses" element={null} />
+          <Route path="settings" element={null} />
+        </Routes>
       </div>
     </div>
   );

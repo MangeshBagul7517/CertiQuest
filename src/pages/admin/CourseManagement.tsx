@@ -9,11 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Edit, Plus, Trash2, Link as LinkIcon } from 'lucide-react';
+
+// Extended Course type with driveLink
+interface ExtendedCourse extends Course {
+  driveLink?: string;
+}
 
 const CourseManagement = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [courses, setCourses] = useState<ExtendedCourse[]>([]);
+  const [editingCourse, setEditingCourse] = useState<ExtendedCourse | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -28,6 +33,7 @@ const CourseManagement = () => {
   const [level, setLevel] = useState('');
   const [details, setDetails] = useState('');
   const [currency, setCurrency] = useState('₹');
+  const [driveLink, setDriveLink] = useState('');
   
   useEffect(() => {
     // Load courses from localStorage or use initial courses
@@ -40,7 +46,7 @@ const CourseManagement = () => {
     }
   }, []);
   
-  const saveCourses = (updatedCourses: Course[]) => {
+  const saveCourses = (updatedCourses: ExtendedCourse[]) => {
     setCourses(updatedCourses);
     localStorage.setItem('courses', JSON.stringify(updatedCourses));
   };
@@ -55,9 +61,10 @@ const CourseManagement = () => {
     setLevel('Beginner');
     setDetails('');
     setCurrency('₹');
+    setDriveLink('');
   };
   
-  const openEditDialog = (course: Course) => {
+  const openEditDialog = (course: ExtendedCourse) => {
     setEditingCourse(course);
     setTitle(course.title);
     setDescription(course.description);
@@ -68,6 +75,7 @@ const CourseManagement = () => {
     setLevel(course.level);
     setDetails(course.details || '');
     setCurrency(course.currency || '₹');
+    setDriveLink(course.driveLink || '');
     setIsEditDialogOpen(true);
   };
   
@@ -77,7 +85,7 @@ const CourseManagement = () => {
       return;
     }
     
-    const newCourse: Course = {
+    const newCourse: ExtendedCourse = {
       id: crypto.randomUUID(),
       title,
       description,
@@ -87,7 +95,12 @@ const CourseManagement = () => {
       instructor,
       level,
       details,
-      currency
+      currency,
+      driveLink,
+      // Adding other necessary fields
+      students: 0,
+      reviews: 0,
+      rating: 0
     };
     
     const updatedCourses = [...courses, newCourse];
@@ -105,7 +118,7 @@ const CourseManagement = () => {
       return;
     }
     
-    const updatedCourse: Course = {
+    const updatedCourse: ExtendedCourse = {
       ...editingCourse,
       title,
       description,
@@ -115,7 +128,8 @@ const CourseManagement = () => {
       instructor,
       level,
       details,
-      currency
+      currency,
+      driveLink
     };
     
     const updatedCourses = courses.map(c => 
@@ -239,6 +253,19 @@ const CourseManagement = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="driveLink" className="text-right">Drive Link</Label>
+                <div className="col-span-3 relative">
+                  <Input
+                    id="driveLink"
+                    value={driveLink}
+                    onChange={(e) => setDriveLink(e.target.value)}
+                    className="pl-8"
+                    placeholder="https://drive.google.com/..."
+                  />
+                  <LinkIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label htmlFor="details" className="text-right pt-2">Details</Label>
                 <Textarea
@@ -275,10 +302,20 @@ const CourseManagement = () => {
               <CardDescription className="line-clamp-2">{course.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">{course.duration}</span>
-                <span className="text-sm font-medium">{course.level}</span>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">{course.duration}</span>
+                  <span className="text-sm font-medium">{course.level}</span>
+                </div>
+                
+                {course.driveLink && (
+                  <div className="flex items-center text-sm text-primary mt-1 overflow-hidden">
+                    <LinkIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">{course.driveLink}</span>
+                  </div>
+                )}
               </div>
+              
               <div className="flex gap-2 mt-4">
                 <Button
                   variant="outline"
@@ -398,6 +435,19 @@ const CourseManagement = () => {
                   <SelectItem value="Advanced">Advanced</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-driveLink" className="text-right">Drive Link</Label>
+              <div className="col-span-3 relative">
+                <Input
+                  id="edit-driveLink"
+                  value={driveLink}
+                  onChange={(e) => setDriveLink(e.target.value)}
+                  className="pl-8"
+                  placeholder="https://drive.google.com/..."
+                />
+                <LinkIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="edit-details" className="text-right pt-2">Details</Label>

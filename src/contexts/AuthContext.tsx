@@ -6,6 +6,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  enrolledCourses?: string[];
 }
 
 interface AuthContextType {
@@ -14,6 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  updateUserCourses: (courseId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,7 +51,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userData = {
           id: foundUser.id,
           name: foundUser.name,
-          email: foundUser.email
+          email: foundUser.email,
+          enrolledCourses: foundUser.enrolledCourses || []
         };
         
         setUser(userData);
@@ -85,7 +88,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id: crypto.randomUUID(),
         name,
         email,
-        password // In a real app, this would be hashed
+        password, // In a real app, this would be hashed
+        enrolledCourses: []
       };
       
       users.push(newUser);
@@ -95,7 +99,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userData = {
         id: newUser.id,
         name: newUser.name,
-        email: newUser.email
+        email: newUser.email,
+        enrolledCourses: []
       };
       
       setUser(userData);
@@ -112,6 +117,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateUserCourses = (courseId: string) => {
+    if (!user) return;
+    
+    // Update user in state
+    const updatedUser = { 
+      ...user, 
+      enrolledCourses: [...(user.enrolledCourses || []), courseId]
+    };
+    setUser(updatedUser);
+    
+    // Update user in localStorage
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    
+    // Update users array in localStorage
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const updatedUsers = users.map((u: any) => {
+      if (u.id === user.id) {
+        return {
+          ...u,
+          enrolledCourses: [...(u.enrolledCourses || []), courseId]
+        };
+      }
+      return u;
+    });
+    
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -119,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserCourses }}>
       {children}
     </AuthContext.Provider>
   );

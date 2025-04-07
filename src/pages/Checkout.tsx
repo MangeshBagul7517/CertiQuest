@@ -9,13 +9,23 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { CreditCard, ArrowRight } from "lucide-react";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { cart, clearCart, totalItems } = useCart();
+  const { user, updateUserCourses } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Form state
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [pincode, setPincode] = useState("");
 
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + item.price, 0);
@@ -23,16 +33,44 @@ const Checkout = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please login to complete your purchase",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+    
+    if (!name || !email || !phone || !address || !city || !pincode) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all the required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsProcessing(true);
     
-    // Simulate payment processing
+    // Simulate payment processing and course enrollment
     setTimeout(() => {
+      // Assign courses to user
+      cart.forEach(course => {
+        updateUserCourses(course.id);
+      });
+      
       setIsProcessing(false);
       clearCart();
+      
       toast({
         title: "Please Proceed with payment",
         description: "Kindly contact us if you have any queries",
       });
+      
+      // Redirect to payment gateway
       window.location.href = "https://payments.cashfree.com/forms?code=certiqiest";
     }, 2000);
   };
@@ -44,9 +82,9 @@ const Checkout = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-8 max-w-5xl">
+      <div className="container mx-auto py-8 max-w-5xl px-4">
         <h1 className="text-3xl font-bold mb-6">Checkout</h1>
-        <h2 className="text-xl font-semibold mb-6">Note : Kindly take a screenshot of the order summary present on right for your reference and further use</h2>
+        <h2 className="text-xl font-semibold mb-6">Note: Kindly take a screenshot of the order summary present on right for your reference and further use</h2>
 
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -57,18 +95,37 @@ const Checkout = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="cardName">Name</Label>
-                      <Input id="cardName" placeholder="John Doe" required />
+                      <Label htmlFor="name">Name</Label>
+                      <Input 
+                        id="name" 
+                        placeholder="John Doe" 
+                        required 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
                     </div>
                     
                     <div>
-                      <Label htmlFor="cardNumber">Contact Number</Label>
-                      <Input id="cardNumber" placeholder="+91 9876543210" required />
+                      <Label htmlFor="phone">Contact Number</Label>
+                      <Input 
+                        id="phone" 
+                        placeholder="+91 9876543210" 
+                        required 
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
                     </div>
 
                     <div>
-                      <Label htmlFor="cardNumber">Email Address</Label>
-                      <Input id="cardNumber" placeholder="yourname@mail.com" required />
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input 
+                        id="email" 
+                        placeholder="yourname@mail.com" 
+                        type="email"
+                        required 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
                   </div>
                   
@@ -79,17 +136,35 @@ const Checkout = () => {
                     
                     <div>
                       <Label htmlFor="address">Address</Label>
-                      <Input id="address" placeholder="123 Main St" required />
+                      <Input 
+                        id="address" 
+                        placeholder="123 Main St" 
+                        required 
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="city">City</Label>
-                        <Input id="city" placeholder="Mumbai" required />
+                        <Input 
+                          id="city" 
+                          placeholder="Mumbai" 
+                          required 
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                        />
                       </div>
                       <div>
                         <Label htmlFor="pincode">PIN Code</Label>
-                        <Input id="pincode" placeholder="400001" required />
+                        <Input 
+                          id="pincode" 
+                          placeholder="400001" 
+                          required 
+                          value={pincode}
+                          onChange={(e) => setPincode(e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>

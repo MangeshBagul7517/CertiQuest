@@ -1,20 +1,32 @@
 
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Clock, User, BarChart2 } from "lucide-react";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 import { Course, loadCourses } from "@/lib/data";
 
 const CourseDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const { toast } = useToast();
   const { addToCart, isInCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -30,6 +42,11 @@ const CourseDetail = () => {
 
   const handleAddToCart = () => {
     if (!course) return;
+    
+    if (!user) {
+      setIsLoginDialogOpen(true);
+      return;
+    }
     
     if (!isInCart(course.id)) {
       addToCart(course);
@@ -105,7 +122,7 @@ const CourseDetail = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 px-4">
         <Link to="/courses" className="inline-flex items-center mb-6 text-primary hover:underline">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Courses
@@ -121,12 +138,12 @@ const CourseDetail = () => {
               />
             </div>
             <h1 className="text-3xl font-bold mb-4">{course.title}</h1>
-            <p className="text-lg mb-6">{course.description}</p>
+            <p className="text-lg mb-6 whitespace-pre-line">{course.description}</p>
             
             <Separator className="my-6" />
             
             <h2 className="text-2xl font-semibold mb-4">Course Details</h2>
-            <p className="mb-6">{course.details || "No detailed description available for this course."}</p>
+            <p className="mb-6 whitespace-pre-line">{course.details || "No detailed description available for this course."}</p>
             
             <div className="my-8">
               <Button 
@@ -180,6 +197,40 @@ const CourseDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Login Dialog */}
+        <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Login Required</DialogTitle>
+              <DialogDescription>
+                Please log in to purchase this course.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex sm:justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsLoginDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <div className="flex gap-2 mt-2 sm:mt-0">
+                <Button onClick={() => {
+                  setIsLoginDialogOpen(false);
+                  navigate('/register');
+                }}>
+                  Register
+                </Button>
+                <Button onClick={() => {
+                  setIsLoginDialogOpen(false);
+                  navigate('/login');
+                }}>
+                  Login
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
