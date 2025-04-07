@@ -1,3 +1,4 @@
+
 import { Course as CourseType } from './types';
 
 // Helper function to load courses from localStorage or initial data
@@ -26,7 +27,11 @@ export const courses: CourseType[] = [
     instructor: "AI Specielist",
     level: "Beginner",
     details: "Dive deep into Artificial Intelligence and master neural networks, CNNs, RNNs, and more. Learn TensorFlow, Keras, and PyTorch to build smart AI models and solve real-world problems like image recognition and language processing.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.8,
+    reviews: 245,
+    students: 1230,
+    category: "Data Science"
   },
   {
     id: "2",
@@ -38,7 +43,11 @@ export const courses: CourseType[] = [
     instructor: "Prof. Hack Master",
     level: "Advanced",
     details: "This course takes you through Microsoft Project fundamentals to advanced skills. Plan, execute, and track projects effectively using Gantt charts, resource management, and reporting tools to deliver successful projects on time and within budget.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.7,
+    reviews: 187,
+    students: 958,
+    category: "Project Management"
   },
   {
     id: "3",
@@ -50,7 +59,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Learn how to implement, monitor, and maintain Microsoft Azure solutions. Gain hands-on experience with Azure services, security, storage, and networking essentials to prepare for real-world cloud administration and certification.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.9,
+    reviews: 215,
+    students: 1050,
+    category: "Cloud Computing"
   },
   {
     id: "4",
@@ -62,7 +75,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Understand cybersecurity basics, threat landscapes, and protection techniques. Learn about network security, encryption, firewalls, and ethical hacking essentials to start your journey in the cybersecurity world.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.6,
+    reviews: 178,
+    students: 876,
+    category: "Cyber Security"
   },
   {
     id: "5",
@@ -74,7 +91,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Learn how AWS database services like RDS, DynamoDB, and Redshift work. This course covers cloud database design, security, backup, and recovery strategies — essential skills for modern cloud architects and developers.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.8,
+    reviews: 192,
+    students: 945,
+    category: "Cloud Computing"
   },
   {
     id: "6",
@@ -85,8 +106,12 @@ export const courses: CourseType[] = [
     image: "https://i.ibb.co/cKWxsxD9/vmware-training.webp",
     instructor: "Cloud Security Expert",
     level: "Intermediate",
-    details: "Understand how VMware’s software-defined storage solution works. Set up, configure, and optimize vSAN clusters for better scalability and performance across your enterprise infrastructure.",
-    currency: "₹"
+    details: "Understand how VMware's software-defined storage solution works. Set up, configure, and optimize vSAN clusters for better scalability and performance across your enterprise infrastructure.",
+    currency: "₹",
+    rating: 4.7,
+    reviews: 156,
+    students: 728,
+    category: "Virtualization"
   },
   {
     id: "7",
@@ -98,7 +123,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Master core Big Data concepts including Hadoop, Spark, and data warehousing. Learn to handle, store, and analyze massive datasets and prepare for Big Data certification exams.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.9,
+    reviews: 210,
+    students: 1120,
+    category: "Data Science"
   },
   {
     id: "8",
@@ -110,7 +139,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Dive into cloud-based big data analytics using Amazon Web Services and Microsoft Azure. Learn about data lakes, real-time analytics, machine learning integrations, and visualization to build powerful data-driven solutions.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.7,
+    reviews: 168,
+    students: 842,
+    category: "Data Science"
   },
   {
     id: "9",
@@ -122,7 +155,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Learn how to build, manage, and customize SharePoint sites with Office 365. Understand document libraries, workflows, permissions, and integrations to boost organizational productivity.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.6,
+    reviews: 145,
+    students: 715,
+    category: "Office Tools"
   },
   {
     id: "10",
@@ -134,7 +171,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Master Adobe Photoshop tools and techniques, from simple edits to complex compositions. This course covers retouching, graphic design, UI/UX mockups, and creative projects to help you build a professional design portfolio.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.8,
+    reviews: 225,
+    students: 1350,
+    category: "Design"
   },
   {
     id: "11",
@@ -146,7 +187,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Learn how to gather, analyze, and visualize business data using BI tools like Power BI, Tableau, and SQL. Understand business strategy and decision-making based on data-driven insights.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.7,
+    reviews: 185,
+    students: 920,
+    category: "Business"
   },
   {
     id: "12",
@@ -158,7 +203,11 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "This course introduces you to project planning, execution, monitoring, and closure. Explore popular methodologies like Agile, Scrum, and Waterfall to manage projects efficiently across industries.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.6,
+    reviews: 156,
+    students: 845,
+    category: "Project Management"
   },
   {
     id: "13",
@@ -170,6 +219,10 @@ export const courses: CourseType[] = [
     instructor: "Cloud Security Expert",
     level: "Intermediate",
     details: "Learn frontend skills (HTML, CSS, JavaScript) and backend PHP development. Work with databases like MySQL, create APIs, and deploy full-stack web applications with real-world projects to kickstart your career in web development.",
-    currency: "₹"
+    currency: "₹",
+    rating: 4.7,
+    reviews: 172,
+    students: 890,
+    category: "Web Development"
   },
 ];

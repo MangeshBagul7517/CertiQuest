@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,16 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Check for redirect flag
+  const [redirectToPayment, setRedirectToPayment] = useState(false);
+  
+  useEffect(() => {
+    const redirectFlag = localStorage.getItem('redirectAfterLogin');
+    if (redirectFlag === 'payment') {
+      setRedirectToPayment(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +49,13 @@ const Login = () => {
           title: "Login successful",
           description: "Welcome back!",
         });
-        navigate("/dashboard");
+        
+        // Check if we need to redirect to payment
+        if (redirectToPayment) {
+          window.location.href = "https://payments.cashfree.com/forms?code=certiqiest";
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         toast({
           title: "Login failed",

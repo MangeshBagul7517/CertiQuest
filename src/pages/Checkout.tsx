@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { CreditCard, ArrowRight } from "lucide-react";
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { cart, clearCart, totalItems } = useCart();
   const { user, updateUserCourses } = useAuth();
@@ -26,6 +27,16 @@ const Checkout = () => {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [pincode, setPincode] = useState("");
+  
+  // Check if redirected from login
+  useEffect(() => {
+    const redirectAfterLogin = localStorage.getItem('redirectAfterLogin');
+    if (redirectAfterLogin === 'payment' && user) {
+      localStorage.removeItem('redirectAfterLogin');
+      // Redirect to payment gateway directly
+      window.location.href = "https://payments.cashfree.com/forms?code=certiqiest";
+    }
+  }, [user]);
 
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + item.price, 0);
@@ -35,6 +46,9 @@ const Checkout = () => {
     e.preventDefault();
     
     if (!user) {
+      // Store redirection info
+      localStorage.setItem('redirectAfterLogin', 'payment');
+      
       toast({
         title: "Login Required",
         description: "Please login to complete your purchase",

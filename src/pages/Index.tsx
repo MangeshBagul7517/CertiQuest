@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bookmark, Clock, Users } from 'lucide-react';
@@ -28,11 +27,6 @@ const Index = () => {
     
     fetchCourses();
   }, []);
-
-  const heroImages = [
-    '/hero-image-1.jpg',
-    '/placeholder.svg',
-  ];
 
   return (
     <Layout>
@@ -165,55 +159,41 @@ const Index = () => {
               ))}
             </div>
           ) : featuredCourses.length > 0 ? (
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {featuredCourses.map((course) => (
-                  <CarouselItem key={course.id} className="basis-1/1 md:basis-1/2 lg:basis-1/3">
-                    <div className="p-1">
-                      <Card className="overflow-hidden border-border/50 h-full transition-all duration-300 hover:shadow-md">
-                        <div className="aspect-video relative overflow-hidden">
-                          <img
-                            src={course.image || '/placeholder.svg'}
-                            alt={course.title}
-                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                          />
-                          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-foreground px-2 py-1 rounded-md text-sm font-medium">
-                            {course.currency} {course.price.toLocaleString('en-IN')}
-                          </div>
-                        </div>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="space-y-2">
-                              <h3 className="font-semibold line-clamp-2">{course.title}</h3>
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {course.description}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-4">
-                            <Link to={`/course/${course.id}`}>
-                              <Button variant="default" className="w-full">
-                                View Course
-                              </Button>
-                            </Link>
-                          </div>
-                        </CardContent>
-                      </Card>
+            <div className="block md:hidden">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {featuredCourses.slice(0, 4).map((course) => (
+                  <Card key={course.id} className="overflow-hidden border-border/50 h-full transition-all duration-300 hover:shadow-md">
+                    <div className="aspect-video relative overflow-hidden">
+                      <img
+                        src={course.image || '/placeholder.svg'}
+                        alt={course.title}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                      <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-foreground px-2 py-1 rounded-md text-sm font-medium">
+                        {course.currency} {course.price.toLocaleString('en-IN')}
+                      </div>
                     </div>
-                  </CarouselItem>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <h3 className="font-semibold line-clamp-2">{course.title}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {course.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <Link to={`/course/${course.id}`}>
+                          <Button variant="default" className="w-full">
+                            View Course
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
-              </CarouselContent>
-              <div className="flex justify-end space-x-2 mt-6">
-                <CarouselPrevious className="relative inset-0 translate-y-0" />
-                <CarouselNext className="relative inset-0 translate-y-0" />
               </div>
-            </Carousel>
+            </div>
           ) : (
             <div className="text-center p-12 border rounded-lg bg-muted/30">
               <h3 className="text-xl font-medium mb-2">New Courses Coming Soon!</h3>
@@ -223,6 +203,60 @@ const Index = () => {
               <Link to="/courses">
                 <Button>Browse All Courses</Button>
               </Link>
+            </div>
+          )}
+          
+          {!isLoading && featuredCourses.length > 0 && (
+            <div className="hidden md:block">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {featuredCourses.map((course) => (
+                    <CarouselItem key={course.id} className="basis-1/1 md:basis-1/2 lg:basis-1/3">
+                      <div className="p-1">
+                        <Card className="overflow-hidden border-border/50 h-full transition-all duration-300 hover:shadow-md">
+                          <div className="aspect-video relative overflow-hidden">
+                            <img
+                              src={course.image || '/placeholder.svg'}
+                              alt={course.title}
+                              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                            />
+                            <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-foreground px-2 py-1 rounded-md text-sm font-medium">
+                              {course.currency} {course.price.toLocaleString('en-IN')}
+                            </div>
+                          </div>
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-2">
+                                <h3 className="font-semibold line-clamp-2">{course.title}</h3>
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {course.description}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-4">
+                              <Link to={`/course/${course.id}`}>
+                                <Button variant="default" className="w-full">
+                                  View Course
+                                </Button>
+                              </Link>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="flex justify-end space-x-2 mt-6">
+                  <CarouselPrevious className="relative inset-0 translate-y-0" />
+                  <CarouselNext className="relative inset-0 translate-y-0" />
+                </div>
+              </Carousel>
             </div>
           )}
         </div>
