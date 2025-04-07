@@ -3,6 +3,7 @@ import { ReactNode, useEffect } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { useLocation } from 'react-router-dom';
+import DiscountBanner from './DiscountBanner';
 
 interface LayoutProps {
   children: ReactNode;
@@ -25,6 +26,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <DiscountBanner />
       <Navbar />
       <main id="main-content" className="flex-grow px-4 md:px-6 transition-all duration-300">
         {children}

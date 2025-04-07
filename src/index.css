@@ -77,20 +77,54 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Course details page - remove excessive spacing */
+  .course-details p {
+    @apply mb-4;
+  }
+
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
   }
 
-  /* Toast positioning fix */
+  /* Toast positioning fix - only use one toaster */
   .sonner-toast-container {
-    z-index: 100;
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    max-width: 420px;
-    width: 100%;
-    pointer-events: none;
+    z-index: 100 !important;
+    position: fixed !important;
+    bottom: 16px !important;
+    right: 16px !important;
+    top: auto !important;
+    left: auto !important;
+    max-width: 420px !important;
+    width: 100% !important;
+    pointer-events: none !important;
+  }
+
+  /* Featured courses responsive fixes */
+  @media (max-width: 640px) {
+    .featured-course-grid {
+      @apply grid-cols-1 gap-4 px-2;
+    }
+    
+    .featured-course-card {
+      @apply max-w-full;
+    }
+    
+    .featured-course-content {
+      @apply p-3;
+    }
+  }
+  
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .featured-course-grid {
+      @apply grid-cols-2 gap-5 px-4;
+    }
+  }
+
+  @media (min-width: 1025px) {
+    .featured-course-grid {
+      @apply grid-cols-3 gap-6;
+    }
   }
 
   /* Transition effects */
@@ -131,4 +165,22 @@
 .scroll-to-top.visible {
   opacity: 1;
   visibility: visible;
+}
+
+/* Additional responsive fixes */
+.responsive-container {
+  @apply w-full px-4 sm:px-6 lg:px-8 mx-auto;
+}
+
+/* Ensure buttons and interactable elements are big enough on mobile */
+@media (max-width: 640px) {
+  button, 
+  .btn, 
+  [role="button"],
+  input,
+  select,
+  .input,
+  .select {
+    @apply min-h-10 min-w-10;
+  }
 }

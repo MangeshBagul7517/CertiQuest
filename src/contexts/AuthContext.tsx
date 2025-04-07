@@ -16,6 +16,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateUserCourses: (courseId: string) => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -117,6 +118,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const userIndex = users.findIndex((u: any) => u.id === user.id);
+
+      if (userIndex === -1) {
+        toast.error('User not found');
+        return false;
+      }
+
+      // Verify current password
+      if (users[userIndex].password !== currentPassword) {
+        toast.error('Current password is incorrect');
+        return false;
+      }
+
+      // Update password
+      users[userIndex].password = newPassword;
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      toast.success('Password changed successfully');
+      return true;
+    } catch (error) {
+      console.error('Password change error:', error);
+      toast.error('An error occurred while changing password');
+      return false;
+    }
+  };
+
   const updateUserCourses = (courseId: string) => {
     if (!user) return;
     
@@ -152,7 +184,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserCourses }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      login, 
+      register, 
+      logout, 
+      updateUserCourses,
+      changePassword 
+    }}>
       {children}
     </AuthContext.Provider>
   );

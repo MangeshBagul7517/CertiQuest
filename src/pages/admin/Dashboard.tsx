@@ -13,7 +13,8 @@ import {
   LogOut, 
   Users, 
   UserPlus, 
-  Search
+  Search,
+  ExternalLink
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -33,22 +34,34 @@ import {
 } from '@/components/ui/select';
 import { loadCourses, Course } from '@/lib/data';
 import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { EnrollmentForm } from '@/lib/types';
 
 // User Management Component
 const UserManagement = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAssignCourseDialogOpen, setIsAssignCourseDialogOpen] = useState(false);
+  const [isAddDriveLinkDialogOpen, setIsAddDriveLinkDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUserCourse, setSelectedUserCourse] = useState<any>(null);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [driveLink, setDriveLink] = useState('');
+  const [enrollmentRequests, setEnrollmentRequests] = useState<EnrollmentForm[]>([]);
   
   useEffect(() => {
     // Load users from localStorage
     const storedUsers = localStorage.getItem('users');
     if (storedUsers) {
       setUsers(JSON.parse(storedUsers));
+    }
+    
+    // Load enrollment requests
+    const storedRequests = localStorage.getItem('enrollmentRequests');
+    if (storedRequests) {
+      setEnrollmentRequests(JSON.parse(storedRequests));
     }
     
     // Load courses
@@ -65,6 +78,14 @@ const UserManagement = () => {
     setSelectedUser(user);
     setSelectedCourseId('');
     setIsAssignCourseDialogOpen(true);
+  };
+
+  const openDriveLinkDialog = (user: any, courseId: string) => {
+    const course = courses.find(c => c.id === courseId);
+    setSelectedUser(user);
+    setSelectedUserCourse(course);
+    setDriveLink(course?.driveLink || '');
+    setIsAddDriveLinkDialogOpen(true);
   };
   
   const handleAssignCourse = () => {
@@ -112,6 +133,91 @@ const UserManagement = () => {
     toast.success('Course assigned successfully');
     setIsAssignCourseDialogOpen(false);
   };
+
+  const handleAddDriveLink = () => {
+    if (!selectedUser || !selectedUserCourse || !driveLink) {
+      toast.error('Please enter a valid drive link');
+      return;
+    }
+
+    // Update course drive link in localStorage
+    const storedCourses = localStorage.getItem('courses');
+    if (storedCourses) {
+      const parsedCourses = JSON.parse(storedCourses);
+      const updatedCourses = parsedCourses.map((course: Course) => {
+        if (course.id === selectedUserCourse.id) {
+          return {
+            ...course,
+            driveLink
+          };
+        }
+        return course;
+      });
+
+      localStorage.setItem('courses', JSON.stringify(updatedCourses));
+      
+      // Update courses state
+      setCourses(updatedCourses);
+      
+      toast.success('Drive link added successfully');
+      setIsAddDriveLinkDialogOpen(false);
+    }
+  };
+
+  const handleApproveEnrollment = (request: EnrollmentForm) => {
+    // Find the user or create a new one
+    const { name, email, courseId } = request;
+    const updatedUsers = [...users];
+    
+    // Check if user already exists
+    const existingUserIndex = updatedUsers.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    
+    if (existingUserIndex >= 0) {
+      // User exists, update their courses
+      const enrolledCourses = updatedUsers[existingUserIndex].enrolledCourses || [];
+      
+      if (!enrolledCourses.includes(courseId)) {
+        updatedUsers[existingUserIndex].enrolledCourses = [...enrolledCourses, courseId];
+      }
+    } else {
+      // Create new user
+      const newUser = {
+        id: crypto.randomUUID(),
+        name,
+        email,
+        password: 'defaultpassword', // In a real app, would generate random password
+        enrolledCourses: [courseId]
+      };
+      
+      updatedUsers.push(newUser);
+    }
+    
+    // Update users in localStorage
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
+    setUsers(updatedUsers);
+    
+    // Remove the request from enrollment requests
+    const updatedRequests = enrollmentRequests.filter(r => 
+      !(r.email === email && r.courseId === courseId)
+    );
+    
+    localStorage.setItem('enrollmentRequests', JSON.stringify(updatedRequests));
+    setEnrollmentRequests(updatedRequests);
+    
+    toast.success('Enrollment approved successfully');
+  };
+
+  const handleDenyEnrollment = (request: EnrollmentForm) => {
+    // Remove the request from enrollment requests
+    const updatedRequests = enrollmentRequests.filter(r => 
+      !(r.email === request.email && r.courseId === request.courseId)
+    );
+    
+    localStorage.setItem('enrollmentRequests', JSON.stringify(updatedRequests));
+    setEnrollmentRequests(updatedRequests);
+    
+    toast.success('Enrollment request denied');
+  };
   
   const filteredUsers = searchTerm
     ? users.filter(user => 
@@ -138,7 +244,53 @@ const UserManagement = () => {
           />
         </div>
       </div>
+
+      {/* Enrollment Requests Section */}
+      {enrollmentRequests.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-4">Pending Enrollment Requests</h3>
+          <div className="grid grid-cols-1 gap-4">
+            {enrollmentRequests.map((request, index) => {
+              const course = courses.find(c => c.id === request.courseId);
+              return (
+                <Card key={`request-${index}`}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{request.name}</CardTitle>
+                    <CardDescription>{request.email} • {request.phone}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-3">
+                      <p className="font-medium">Requested Course:</p>
+                      <p>{course?.title || 'Unknown Course'}</p>
+                    </div>
+                    {request.message && (
+                      <div>
+                        <p className="font-medium">Message:</p>
+                        <p className="text-sm text-muted-foreground">{request.message}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                  <CardFooter className="flex justify-end gap-2 pt-0">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleDenyEnrollment(request)}
+                    >
+                      Deny
+                    </Button>
+                    <Button 
+                      onClick={() => handleApproveEnrollment(request)}
+                    >
+                      Approve
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
       
+      {/* Users List */}
       {filteredUsers.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground">No users found</p>
@@ -162,13 +314,21 @@ const UserManagement = () => {
               <CardContent>
                 <h4 className="font-semibold mb-2">Enrolled Courses</h4>
                 {user.enrolledCourses?.length ? (
-                  <ul className="space-y-1">
+                  <ul className="space-y-2">
                     {user.enrolledCourses.map((courseId: string) => {
                       const course = courses.find(c => c.id === courseId);
                       return (
-                        <li key={courseId} className="px-3 py-1 bg-slate-50 rounded flex justify-between">
-                          <span>{course?.title || 'Unknown Course'}</span>
-                          <span className="text-muted-foreground">{course?.price ? `${course.currency || '₹'}${course.price}` : ''}</span>
+                        <li key={courseId} className="px-3 py-2 bg-slate-50 rounded flex justify-between items-center">
+                          <span className="flex-1">{course?.title || 'Unknown Course'}</span>
+                          <span className="text-muted-foreground mx-2">{course?.price ? `${course.currency || '₹'}${course.price}` : ''}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => openDriveLinkDialog(user, courseId)}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            {course?.driveLink ? 'Update Link' : 'Add Link'}
+                          </Button>
                         </li>
                       );
                     })}
@@ -210,6 +370,35 @@ const UserManagement = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAssignCourseDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleAssignCourse}>Assign Course</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Drive Link Dialog */}
+      <Dialog open={isAddDriveLinkDialogOpen} onOpenChange={setIsAddDriveLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Course Access Link</DialogTitle>
+            <DialogDescription>
+              Add a Google Drive or resource link for {selectedUserCourse?.title}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <label className="block text-sm font-medium mb-2">Drive/Resource Link</label>
+            <Input
+              placeholder="https://drive.google.com/..."
+              value={driveLink}
+              onChange={(e) => setDriveLink(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground mt-2">
+              This link will be available to all users enrolled in this course.
+            </p>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDriveLinkDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddDriveLink}>Save Link</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

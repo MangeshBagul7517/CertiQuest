@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,8 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { LogOut, User, Settings, BookOpen, ExternalLink } from "lucide-react";
-import { Course, loadCourses } from "@/lib/data";
+import { LogOut, User, Settings, BookOpen, ExternalLink, Lock } from "lucide-react";
+import { Course } from "@/lib/types";
+import { loadCourses } from "@/lib/data";
+import EnrollmentForm from "@/components/EnrollmentForm";
+import ChangePasswordForm from "@/components/ChangePasswordForm";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -107,12 +111,8 @@ const EnrolledCourses = () => {
   
   if (enrolledCourses.length === 0) {
     return (
-      <div className="text-center py-8">
-        <h3 className="text-lg font-medium mb-2">You haven't enrolled in any courses yet</h3>
-        <p className="text-muted-foreground mb-4">Browse our courses and start learning today</p>
-        <Link to="/courses">
-          <Button>Browse Courses</Button>
-        </Link>
+      <div className="py-8">
+        <EnrollmentForm />
       </div>
     );
   }
@@ -153,6 +153,27 @@ const EnrolledCourses = () => {
   );
 };
 
+const SecuritySettings = () => {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Security Settings</h2>
+      
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-4 flex items-center">
+                <Lock className="mr-2 h-5 w-5" /> Change Password
+              </h3>
+              <ChangePasswordForm />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 const AccountSettings = () => {
   const { toast } = useToast();
   
@@ -174,15 +195,6 @@ const AccountSettings = () => {
             <div className="space-y-2">
               <p className="text-muted-foreground">
                 Notification settings will be available soon.
-              </p>
-            </div>
-            
-            <Separator />
-            
-            <h3 className="text-lg font-medium">Password</h3>
-            <div className="space-y-2">
-              <p className="text-muted-foreground">
-                Password change feature will be available soon.
               </p>
             </div>
             
@@ -236,7 +248,7 @@ const Dashboard = () => {
           </div>
           
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full md:w-auto grid-cols-3 mb-8">
+            <TabsList className="grid w-full md:w-auto grid-cols-4 mb-8">
               <TabsTrigger value="profile">
                 <User className="h-4 w-4 mr-2" />
                 <span className="hidden md:inline">Profile</span>
@@ -244,6 +256,10 @@ const Dashboard = () => {
               <TabsTrigger value="courses">
                 <BookOpen className="h-4 w-4 mr-2" />
                 <span className="hidden md:inline">My Courses</span>
+              </TabsTrigger>
+              <TabsTrigger value="security">
+                <Lock className="h-4 w-4 mr-2" />
+                <span className="hidden md:inline">Security</span>
               </TabsTrigger>
               <TabsTrigger value="settings">
                 <Settings className="h-4 w-4 mr-2" />
@@ -257,6 +273,9 @@ const Dashboard = () => {
             <TabsContent value="courses">
               <EnrolledCourses />
             </TabsContent>
+            <TabsContent value="security">
+              <SecuritySettings />
+            </TabsContent>
             <TabsContent value="settings">
               <AccountSettings />
             </TabsContent>
@@ -266,6 +285,7 @@ const Dashboard = () => {
         <Routes>
           <Route index element={null} />
           <Route path="courses" element={null} />
+          <Route path="security" element={null} />
           <Route path="settings" element={null} />
         </Routes>
       </div>

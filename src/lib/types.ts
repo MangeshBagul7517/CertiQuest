@@ -18,3 +18,17 @@ export interface Course {
   currency?: string;
   driveLink?: string;
 }
+
+export interface EnrollmentForm {
+  name: string;
+  email: string;
+  phone: string;
+  courseId: string;
+  message: string;
+}
+
+export interface PasswordChangeForm {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
