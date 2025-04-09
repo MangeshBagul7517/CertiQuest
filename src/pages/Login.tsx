@@ -38,18 +38,13 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Check if admin credentials
-      if (email === "mangeshbbagul@gmail.com" && password === "Mangesh@1122") {
-        localStorage.setItem('adminAuth', 'true');
-        toast.success("Admin login successful");
-        navigate("/admin/dashboard");
-        return;
-      }
-
-      // Regular user login
       const success = await login(email, password);
       if (success) {
-        toast.success("Login successful");
+        // Check if admin login (handled in AuthContext)
+        if (localStorage.getItem('adminAuth') === 'true') {
+          navigate("/admin/dashboard");
+          return;
+        }
         
         // Check if we need to redirect to payment
         if (redirectToPayment) {
@@ -57,11 +52,9 @@ const Login = () => {
         } else {
           navigate("/dashboard");
         }
-      } else {
-        toast.error("Invalid email or password");
       }
     } catch (error) {
-      toast.error("An error occurred during login");
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }

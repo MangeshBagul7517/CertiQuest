@@ -1,21 +1,33 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 const AdminProtectedRoute = () => {
-  const { checkAdminStatus } = useAdmin();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
-    if (!checkAdminStatus()) {
-      toast.error('Admin access required');
-      navigate('/login');
-    }
-  }, [navigate, checkAdminStatus]);
+    const checkAdmin = async () => {
+      // Check if the user is logged in and is an admin
+      const isAdminUser = 
+        user?.email === "mangeshbbagul@gmail.com" && 
+        localStorage.getItem('adminAuth') === 'true';
+      
+      setIsAdmin(isAdminUser);
+      
+      if (!isAdminUser) {
+        toast.error('Admin access required');
+        navigate('/login');
+      }
+    };
+    
+    checkAdmin();
+  }, [navigate, user]);
   
-  return checkAdminStatus() ? <Outlet /> : null;
+  return isAdmin ? <Outlet /> : null;
 };
 
 export default AdminProtectedRoute;

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 
@@ -19,35 +19,22 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name || !email || !password || !confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Please fill all the fields",
-        variant: "destructive",
-      });
+      toast.error("Please fill all the fields");
       return;
     }
     
     if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
+      toast.error("Passwords do not match");
       return;
     }
     
     if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
+      toast.error("Password must be at least 6 characters long");
       return;
     }
     
@@ -56,24 +43,10 @@ const Register = () => {
     try {
       const success = await register(name, email, password);
       if (success) {
-        toast({
-          title: "Registration successful",
-          description: "Your account has been created",
-        });
         navigate("/dashboard");
-      } else {
-        toast({
-          title: "Registration failed",
-          description: "An error occurred during registration",
-          variant: "destructive",
-        });
       }
     } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: "An error occurred during registration",
-        variant: "destructive",
-      });
+      console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
     }

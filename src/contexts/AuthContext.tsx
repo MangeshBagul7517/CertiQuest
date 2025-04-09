@@ -1,8 +1,10 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
 
-interface User {
+interface AuthUser {
   id: string;
   name: string;
   email: string;
@@ -10,7 +12,7 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
@@ -22,50 +24,89 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
 
+  // Initialize session and set up listener
   useEffect(() => {
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('user');
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          // Convert Supabase user to our AuthUser format
+          const authUser: AuthUser = {
+            id: session.user.id,
+            name: session.user.user_metadata.name || '',
+            email: session.user.email || '',
+            enrolledCourses: session.user.user_metadata.enrolledCourses || []
+          };
+          setUser(authUser);
+        } else {
+          setUser(null);
+        }
       }
-    }
-    setIsLoading(false);
+    );
+
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        // Convert Supabase user to our AuthUser format
+        const authUser: AuthUser = {
+          id: session.user.id,
+          name: session.user.user_metadata.name || '',
+          email: session.user.email || '',
+          enrolledCourses: session.user.user_metadata.enrolledCourses || []
+        };
+        setUser(authUser);
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // For demo, check against localStorage
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const foundUser = users.find((u: any) => 
-        u.email.toLowerCase() === email.toLowerCase() && u.password === password
-      );
-
-      if (foundUser) {
-        const userData = {
-          id: foundUser.id,
-          name: foundUser.name,
-          email: foundUser.email,
-          enrolledCourses: foundUser.enrolledCourses || []
-        };
+      // Check if admin credentials
+      if (email === "mangeshbbagul@gmail.com" && password === "Mangesh@1122") {
+        // Use Supabase to sign in, but mark as admin in metadata
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
         
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+        if (error) {
+          toast.error('Admin authentication failed');
+          return false;
+        }
+        
+        localStorage.setItem('adminAuth', 'true');
+        toast.success('Admin login successful');
         return true;
-      } else {
-        toast.error('Invalid email or password');
+      }
+
+      // Regular user login with Supabase
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        toast.error(error.message || 'Invalid email or password');
         return false;
       }
-    } catch (error) {
+
+      toast.success('Login successful');
+      return true;
+    } catch (error: any) {
       console.error('Login error:', error);
-      toast.error('An error occurred during login');
+      toast.error(error?.message || 'An error occurred during login');
       return false;
     } finally {
       setIsLoading(false);
@@ -75,41 +116,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // For demo, store in localStorage
-      let users = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      // Check if email already exists
-      if (users.some((u: any) => u.email.toLowerCase() === email.toLowerCase())) {
-        toast.error('Email already registered');
+      // Register with Supabase
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            enrolledCourses: []
+          }
+        }
+      });
+
+      if (error) {
+        toast.error(error.message || 'Registration failed');
         return false;
       }
 
-      const newUser = {
-        id: crypto.randomUUID(),
-        name,
-        email,
-        password, // In a real app, this would be hashed
-        enrolledCourses: []
-      };
-      
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-      
-      // Auto login
-      const userData = {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        enrolledCourses: []
-      };
-      
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
+      toast.success('Registration successful! Please verify your email if required.');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      toast.error('An error occurred during registration');
+      toast.error(error?.message || 'An error occurred during registration');
       return false;
     } finally {
       setIsLoading(false);
@@ -117,68 +145,74 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
-    if (!user) return false;
-
     try {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const userIndex = users.findIndex((u: any) => u.id === user.id);
+      // First verify the current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: currentPassword
+      });
 
-      if (userIndex === -1) {
-        toast.error('User not found');
-        return false;
-      }
-
-      // Verify current password
-      if (users[userIndex].password !== currentPassword) {
+      if (signInError) {
         toast.error('Current password is incorrect');
         return false;
       }
 
-      // Update password
-      users[userIndex].password = newPassword;
-      localStorage.setItem('users', JSON.stringify(users));
-      
+      // Update the password
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast.error(error.message || 'Password change failed');
+        return false;
+      }
+
       toast.success('Password changed successfully');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Password change error:', error);
-      toast.error('An error occurred while changing password');
+      toast.error(error?.message || 'An error occurred while changing password');
       return false;
     }
   };
 
-  const updateUserCourses = (courseId: string) => {
+  const updateUserCourses = async (courseId: string) => {
     if (!user) return;
-    
-    // Update user in state
-    const updatedUser = { 
-      ...user, 
-      enrolledCourses: [...(user.enrolledCourses || []), courseId]
-    };
-    setUser(updatedUser);
-    
-    // Update user in localStorage
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    
-    // Update users array in localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const updatedUsers = users.map((u: any) => {
-      if (u.id === user.id) {
-        return {
-          ...u,
-          enrolledCourses: [...(u.enrolledCourses || []), courseId]
-        };
+
+    try {
+      // Get current enrolled courses
+      const enrolledCourses = [...(user.enrolledCourses || []), courseId];
+
+      // Update user metadata in Supabase
+      const { error } = await supabase.auth.updateUser({
+        data: { enrolledCourses }
+      });
+
+      if (error) {
+        toast.error('Failed to update enrolled courses');
+        return;
       }
-      return u;
-    });
-    
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
+
+      // Update local state
+      setUser({
+        ...user,
+        enrolledCourses
+      });
+
+    } catch (error) {
+      console.error('Update courses error:', error);
+      toast.error('An error occurred while updating courses');
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    toast.info('You have been logged out');
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error('Error signing out');
+    } else {
+      localStorage.removeItem('adminAuth');
+      toast.info('You have been logged out');
+    }
   };
 
   return (
