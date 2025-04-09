@@ -58,7 +58,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
-        toast.success('Login successful!');
         return true;
       } else {
         toast.error('Invalid email or password');
@@ -77,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       // For demo, store in localStorage
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      let users = JSON.parse(localStorage.getItem('users') || '[]');
       
       // Check if email already exists
       if (users.some((u: any) => u.email.toLowerCase() === email.toLowerCase())) {
@@ -107,7 +106,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      toast.success('Registration successful!');
       return true;
     } catch (error) {
       console.error('Registration error:', error);

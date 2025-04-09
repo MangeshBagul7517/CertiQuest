@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/contexts/AdminContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkAdminStatus } = useAdmin();
   
   // Check for redirect flag
   const [redirectToPayment, setRedirectToPayment] = useState(false);
@@ -43,6 +45,18 @@ const Login = () => {
     setIsLoading(true);
     
     try {
+      // Check if admin credentials
+      if (email === "mangeshbbagul@gmail.com" && password === "Mangesh@1122") {
+        localStorage.setItem('adminAuth', 'true');
+        toast({
+          title: "Admin login successful",
+          description: "Welcome back, admin!",
+        });
+        navigate("/admin/dashboard");
+        return;
+      }
+
+      // Regular user login
       const success = await login(email, password);
       if (success) {
         toast({

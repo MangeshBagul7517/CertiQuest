@@ -11,7 +11,7 @@ const AdminProtectedRoute = () => {
   useEffect(() => {
     if (!checkAdminStatus()) {
       toast.error('Admin access required');
-      navigate('/admin/login');
+      navigate('/login');
     }
   }, [navigate, checkAdminStatus]);
   
