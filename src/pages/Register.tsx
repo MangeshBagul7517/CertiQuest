@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -17,6 +19,9 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showOtpDialog, setShowOtpDialog] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -42,13 +47,43 @@ const Register = () => {
     
     try {
       const success = await register(name, email, password);
+      
       if (success) {
-        navigate("/dashboard");
+        // In a real implementation, Supabase would send an email with OTP
+        // For demo purposes, we'll just show the OTP dialog and simulate verification
+        setShowOtpDialog(true);
+        toast.info("Check your email for verification code");
       }
     } catch (error) {
       console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+    
+    setVerifyingOtp(true);
+    
+    try {
+      // In a real implementation, this would verify the OTP with Supabase
+      // For demo purposes, we'll just show a success message and navigate
+      
+      setTimeout(() => {
+        setShowOtpDialog(false);
+        toast.success("Email verified successfully");
+        // Navigate to dashboard after successful verification
+        navigate("/dashboard");
+      }, 1500);
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      toast.error("Invalid code. Please try again.");
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
@@ -154,6 +189,59 @@ const Register = () => {
           </CardFooter>
         </Card>
       </div>
+
+      {/* OTP Verification Dialog */}
+      <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verify your email</DialogTitle>
+            <DialogDescription>
+              Enter the 6-digit verification code sent to {email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center py-4 space-y-4">
+            <InputOTP
+              maxLength={6}
+              value={otp}
+              onChange={(value) => setOtp(value)}
+              render={({ slots }) => (
+                <InputOTPGroup>
+                  {slots.map((slot, index) => (
+                    <InputOTPSlot key={index} {...slot} />
+                  ))}
+                </InputOTPGroup>
+              )}
+            />
+            <Button 
+              onClick={handleVerifyOtp} 
+              className="w-full"
+              disabled={verifyingOtp}
+            >
+              {verifyingOtp ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                "Verify Email"
+              )}
+            </Button>
+            <div className="text-center text-sm">
+              Didn't receive the code?{" "}
+              <Button
+                variant="link"
+                className="p-0 h-auto"
+                onClick={() => {
+                  setShowOtpDialog(false);
+                  toast.info("Registration process restarted. You can try again.");
+                }}
+              >
+                Resend code
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
