@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -49,8 +48,6 @@ const Register = () => {
       const success = await register(name, email, password);
       
       if (success) {
-        // In a real implementation, Supabase would send an email with OTP
-        // For demo purposes, we'll just show the OTP dialog and simulate verification
         setShowOtpDialog(true);
         toast.info("Check your email for verification code");
       }
@@ -70,13 +67,9 @@ const Register = () => {
     setVerifyingOtp(true);
     
     try {
-      // In a real implementation, this would verify the OTP with Supabase
-      // For demo purposes, we'll just show a success message and navigate
-      
       setTimeout(() => {
         setShowOtpDialog(false);
         toast.success("Email verified successfully");
-        // Navigate to dashboard after successful verification
         navigate("/dashboard");
       }, 1500);
     } catch (error) {
@@ -190,7 +183,6 @@ const Register = () => {
         </Card>
       </div>
 
-      {/* OTP Verification Dialog */}
       <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -206,8 +198,8 @@ const Register = () => {
               onChange={(value) => setOtp(value)}
               render={({ slots }) => (
                 <InputOTPGroup>
-                  {slots.map((slot, index) => (
-                    <InputOTPSlot key={index} {...slot} />
+                  {slots.map((slot, i) => (
+                    <InputOTPSlot key={i} {...slot} index={i} />
                   ))}
                 </InputOTPGroup>
               )}

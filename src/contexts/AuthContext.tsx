@@ -73,19 +73,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Check if admin credentials
+      // Check if admin credentials (hardcoded for this example)
       if (email === "mangeshbbagul@gmail.com" && password === "Mangesh@1122") {
-        // Use Supabase to sign in, but mark as admin in metadata
+        // Regular login with Supabase
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         
         if (error) {
-          toast.error('Admin authentication failed');
+          toast.error('Admin authentication failed: ' + error.message);
           return false;
         }
         
+        // Set admin flag in localStorage after successful login
         localStorage.setItem('adminAuth', 'true');
         toast.success('Admin login successful');
         return true;

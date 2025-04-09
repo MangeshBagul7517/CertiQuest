@@ -12,9 +12,7 @@ const AdminProtectedRoute = () => {
   useEffect(() => {
     const checkAdmin = async () => {
       // Check if the user is logged in and is an admin
-      const isAdminUser = 
-        user?.email === "mangeshbbagul@gmail.com" && 
-        localStorage.getItem('adminAuth') === 'true';
+      const isAdminUser = user?.email === "mangeshbbagul@gmail.com";
       
       setIsAdmin(isAdminUser);
       
