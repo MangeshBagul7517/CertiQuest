@@ -1,13 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAdmin } from "@/contexts/AdminContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const Login = () => {
@@ -17,8 +16,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { checkAdminStatus } = useAdmin();
   
   // Check for redirect flag
   const [redirectToPayment, setRedirectToPayment] = useState(false);
@@ -34,11 +31,7 @@ const Login = () => {
     e.preventDefault();
     
     if (!email || !password) {
-      toast({
-        title: "Error",
-        description: "Please enter both email and password",
-        variant: "destructive",
-      });
+      toast.error("Please enter both email and password");
       return;
     }
     
@@ -48,10 +41,7 @@ const Login = () => {
       // Check if admin credentials
       if (email === "mangeshbbagul@gmail.com" && password === "Mangesh@1122") {
         localStorage.setItem('adminAuth', 'true');
-        toast({
-          title: "Admin login successful",
-          description: "Welcome back, admin!",
-        });
+        toast.success("Admin login successful");
         navigate("/admin/dashboard");
         return;
       }
@@ -59,10 +49,7 @@ const Login = () => {
       // Regular user login
       const success = await login(email, password);
       if (success) {
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
+        toast.success("Login successful");
         
         // Check if we need to redirect to payment
         if (redirectToPayment) {
@@ -71,18 +58,10 @@ const Login = () => {
           navigate("/dashboard");
         }
       } else {
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password",
-          variant: "destructive",
-        });
+        toast.error("Invalid email or password");
       }
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "An error occurred during login",
-        variant: "destructive",
-      });
+      toast.error("An error occurred during login");
     } finally {
       setIsLoading(false);
     }
