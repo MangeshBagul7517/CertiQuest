@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +8,7 @@ interface AuthUser {
   name: string;
   email: string;
   enrolledCourses?: string[];
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
@@ -40,7 +40,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             id: session.user.id,
             name: session.user.user_metadata.name || '',
             email: session.user.email || '',
-            enrolledCourses: session.user.user_metadata.enrolledCourses || []
+            enrolledCourses: session.user.user_metadata.enrolledCourses || [],
+            // Check if the user is an admin
+            isAdmin: session.user.email === "mangeshbbagul@gmail.com"
           };
           setUser(authUser);
         } else {
@@ -58,7 +60,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           id: session.user.id,
           name: session.user.user_metadata.name || '',
           email: session.user.email || '',
-          enrolledCourses: session.user.user_metadata.enrolledCourses || []
+          enrolledCourses: session.user.user_metadata.enrolledCourses || [],
+          // Check if the user is an admin
+          isAdmin: session.user.email === "mangeshbbagul@gmail.com"
         };
         setUser(authUser);
       }
@@ -73,37 +77,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Check if admin credentials (hardcoded for this example)
-      if (email === "mangeshbbagul@gmail.com" && password === "Mangesh@1122") {
-        // Regular login with Supabase
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        
-        if (error) {
-          toast.error('Admin authentication failed: ' + error.message);
-          return false;
-        }
-        
-        // Set admin flag in localStorage after successful login
-        localStorage.setItem('adminAuth', 'true');
-        toast.success('Admin login successful');
-        return true;
-      }
-
-      // Regular user login with Supabase
+      // Check if admin credentials (hardcoded for demo)
+      const isAdmin = email === "mangeshbbagul@gmail.com";
+      
+      // Regular login with Supabase
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-
+      
       if (error) {
-        toast.error(error.message || 'Invalid email or password');
+        toast.error('Login failed: ' + error.message);
         return false;
       }
-
-      toast.success('Login successful');
+      
+      // Set admin flag if this is the admin email
+      if (isAdmin) {
+        localStorage.setItem('adminAuth', 'true');
+        toast.success('Admin login successful');
+      } else {
+        toast.success('Login successful');
+      }
+      
       return true;
     } catch (error: any) {
       console.error('Login error:', error);

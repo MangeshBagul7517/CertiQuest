@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -6,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import Layout from "@/components/Layout";
+import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
@@ -21,6 +21,7 @@ const Register = () => {
   const [showOtpDialog, setShowOtpDialog] = useState(false);
   const [otp, setOtp] = useState("");
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [showEmailSentDialog, setShowEmailSentDialog] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -48,8 +49,8 @@ const Register = () => {
       const success = await register(name, email, password);
       
       if (success) {
-        setShowOtpDialog(true);
-        toast.info("Check your email for verification code");
+        setShowEmailSentDialog(true);
+        toast.success("Registration successful! Please check your email to verify your account.");
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -80,109 +81,150 @@ const Register = () => {
     }
   };
 
+  const handleCloseEmailSentDialog = () => {
+    setShowEmailSentDialog(false);
+    navigate("/login"); // Redirect to login page
+  };
+
   return (
-    <Layout>
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-            <CardDescription>
-              Enter your information to create an account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="mail@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
+    <>
+      <div className="flex min-h-screen flex-col bg-slate-50">
+        {/* Header */}
+        <header className="w-full bg-white py-4 px-6 shadow-sm">
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <Link to="/" className="text-2xl font-bold text-primary">CertiQuest</Link>
+            <nav>
+              <Link to="/courses" className="text-gray-600 hover:text-primary mx-3">Courses</Link>
+              <Link to="/login" className="text-gray-600 hover:text-primary mx-3">Login</Link>
+            </nav>
+          </div>
+        </header>
+        
+        <div className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <Card className="w-full max-w-md">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+              <CardDescription>
+                Enter your information to create an account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    id="name"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     required
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="mail@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Register"
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-4">
+              <div className="text-center text-sm">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="font-medium text-primary hover:underline"
+                >
+                  Login
+                </Link>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input
-                  id="confirm-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
-                  "Register"
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-center text-sm">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="font-medium text-primary hover:underline"
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate("/")}
               >
-                Login
-              </Link>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate("/")}
-            >
-              Back to Home
-            </Button>
-          </CardFooter>
-        </Card>
+                Back to Home
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
 
+      {/* Email Verification Success Dialog */}
+      <Dialog open={showEmailSentDialog} onOpenChange={setShowEmailSentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Email Verification Required</DialogTitle>
+            <DialogDescription className="text-center">
+              We've sent a verification email to <span className="font-semibold">{email}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center space-y-4 pt-4">
+            <CheckCircle className="h-16 w-16 text-green-500" />
+            <p className="text-center text-sm text-gray-600">
+              Please check your email and click the verification link to activate your account. 
+              After verification, you'll be able to log in.
+            </p>
+            <Button className="w-full" onClick={handleCloseEmailSentDialog}>
+              Go to Login
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* OTP Dialog (kept for compatibility) */}
       <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -234,7 +276,7 @@ const Register = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
 };
 

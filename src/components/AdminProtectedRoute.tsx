@@ -7,25 +7,32 @@ import { toast } from 'sonner';
 const AdminProtectedRoute = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   
   useEffect(() => {
     const checkAdmin = async () => {
       // Check if the user is logged in and is an admin
       const isAdminUser = user?.email === "mangeshbbagul@gmail.com";
       
-      setIsAdmin(isAdminUser);
+      if (!user) {
+        toast.error('Please login first');
+        navigate('/login');
+        return;
+      }
       
       if (!isAdminUser) {
         toast.error('Admin access required');
-        navigate('/login');
+        navigate('/dashboard');
+        return;
       }
+      
+      setIsVerified(true);
     };
     
     checkAdmin();
   }, [navigate, user]);
   
-  return isAdmin ? <Outlet /> : null;
+  return isVerified ? <Outlet /> : null;
 };
 
 export default AdminProtectedRoute;
