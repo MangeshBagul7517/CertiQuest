@@ -15,7 +15,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   
   // Check for redirect flag
@@ -26,7 +26,16 @@ const Login = () => {
     if (redirectFlag === 'payment') {
       setRedirectToPayment(true);
     }
-  }, []);
+    
+    // If already logged in, redirect appropriately
+    if (user) {
+      if (user.isAdmin) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,17 +50,11 @@ const Login = () => {
     try {
       const success = await login(email, password);
       if (success) {
-        // Check if admin login (handled in AuthContext)
-        if (email === "admin@certiquest.com") {
-          navigate("/admin/dashboard");
-          return;
-        }
+        // Redirect handled in the useEffect above when user is updated
         
         // Check if we need to redirect to payment
         if (redirectToPayment) {
           window.location.href = "https://payments.cashfree.com/forms?code=certiqiest";
-        } else {
-          navigate("/dashboard");
         }
       }
     } catch (error) {

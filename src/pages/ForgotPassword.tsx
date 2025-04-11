@@ -11,15 +11,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import Layout from "@/components/Layout";
+import emailjs from '@emailjs/browser';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showOtpDialog, setShowOtpDialog] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showEmailSentDialog, setShowEmailSentDialog] = useState(false);
   const navigate = useNavigate();
 
@@ -34,74 +30,37 @@ const ForgotPassword = () => {
     setIsLoading(true);
     
     try {
+      // Send password reset email via Supabase
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/login',
+        redirectTo: `${window.location.origin}/login`,
       });
       
       if (error) {
         toast.error(error.message);
       } else {
+        // Also send a notification via EmailJS
+        try {
+          await emailjs.send(
+            'service_jnwp6jj', // Replace with your EmailJS service ID
+            'template_w9gnvdn', // Replace with your EmailJS template ID
+            {
+              to_email: email,
+              to_name: email.split('@')[0],
+              reset_link: `${window.location.origin}/login`,
+              subject: 'Password Reset Request - CertiQuest'
+            },
+            'RtNvifJglWDbjZCyo' // Replace with your EmailJS public key
+          );
+        } catch (emailError) {
+          console.error("EmailJS notification error:", emailError);
+          // Don't show this error to the user as the Supabase email was sent successfully
+        }
+        
+        // Show success dialog
         setShowEmailSentDialog(true);
       }
     } catch (error: any) {
       console.error("Reset password error:", error);
-      toast.error(error?.message || "An error occurred during password reset");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp || otp.length !== 6) {
-      toast.error("Please enter a valid 6-digit code");
-      return;
-    }
-    
-    setVerifyingOtp(true);
-    
-    try {
-      // In a real implementation, this would verify the OTP with Supabase
-      // For demo purposes, we'll just show the password reset form
-      setTimeout(() => {
-        setShowOtpDialog(false);
-        setShowPasswordReset(true);
-      }, 1500);
-    } catch (error: any) {
-      console.error("OTP verification error:", error);
-      toast.error("Invalid code. Please try again.");
-    } finally {
-      setVerifyingOtp(false);
-    }
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newPassword) {
-      toast.error("Please enter a new password");
-      return;
-    }
-    
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters long");
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Password reset successfully");
-        navigate("/login");
-      }
-    } catch (error: any) {
-      console.error("Password reset error:", error);
       toast.error(error?.message || "An error occurred during password reset");
     } finally {
       setIsLoading(false);
@@ -120,68 +79,40 @@ const ForgotPassword = () => {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
             <CardDescription>
-              {!showPasswordReset 
-                ? "Enter your email to receive a password reset link" 
-                : "Create a new password for your account"}
+              Enter your email to receive a password reset link
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {!showPasswordReset ? (
-              <form onSubmit={handleResetRequest} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="mail@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending request...
-                    </>
-                  ) : (
-                    "Send Reset Link"
-                  )}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Resetting password...
-                    </>
-                  ) : (
-                    "Reset Password"
-                  )}
-                </Button>
-              </form>
-            )}
+            <form onSubmit={handleResetRequest} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="mail@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending request...
+                  </>
+                ) : (
+                  "Send Reset Link"
+                )}
+              </Button>
+            </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-center text-sm">
               Remember your password?{" "}
               <Link
                 to="/login"
-                className="font-medium text-primary hover:underline"
+                className="font-medium text-primary hover:text-primary/80 hover:underline"
               >
                 Back to login
               </Link>
@@ -215,59 +146,6 @@ const ForgotPassword = () => {
             <Button className="w-full" onClick={handleCloseEmailSentDialog}>
               Return to Login
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* OTP Verification Dialog */}
-      <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Verify your email</DialogTitle>
-            <DialogDescription>
-              Enter the 6-digit verification code sent to {email}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center py-4 space-y-4">
-            <InputOTP
-              maxLength={6}
-              value={otp}
-              onChange={(value) => setOtp(value)}
-              render={({ slots }) => (
-                <InputOTPGroup>
-                  {slots.map((slot, i) => (
-                    <InputOTPSlot key={i} {...slot} index={i} />
-                  ))}
-                </InputOTPGroup>
-              )}
-            />
-            <Button 
-              onClick={handleVerifyOtp} 
-              className="w-full"
-              disabled={verifyingOtp}
-            >
-              {verifyingOtp ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                "Verify Code"
-              )}
-            </Button>
-            <div className="text-center text-sm">
-              Didn't receive the code?{" "}
-              <Button
-                variant="link"
-                className="p-0 h-auto"
-                onClick={() => {
-                  setShowOtpDialog(false);
-                  toast.info("Password reset request restarted. You can try again.");
-                }}
-              >
-                Resend code
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>

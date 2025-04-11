@@ -41,23 +41,46 @@ const ContactPage = () => {
     setFormData(prev => ({ ...prev, inquiryType: value }));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
-      toast.success('Message sent successfully! We will get back to you soon.');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-        inquiryType: ''
-      });
+    try {
+      // Send email via EmailJS
+      const response = await emailjs.send(
+        'service_jnwp6jj', // Replace with your EmailJS service ID
+        'template_w9gnvdn', // Replace with your EmailJS template ID
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          phone: formData.phone,
+          inquiry_type: formData.inquiryType,
+          subject: formData.subject,
+          message: formData.message
+        },
+        'RtNvifJglWDbjZCyo' // Replace with your EmailJS public key
+      );
+      
+      if (response.status === 200) {
+        toast.success('Message sent successfully! We will get back to you soon.');
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+          inquiryType: ''
+        });
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again later.');
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
   
   return (
@@ -260,26 +283,6 @@ const ContactPage = () => {
           </div>
         </div>
       </section>
-      
-      {/* Map Section */}
-      {/*<section className="py-16">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight mb-4">Find Us</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Visit our headquarters in Mumbai
-            </p>
-          </div>
-          
-          <div className="aspect-[21/9] w-full overflow-hidden rounded-lg shadow-md bg-muted/50 flex items-center justify-center">
-            <div className="text-center p-8">
-              <p className="text-muted-foreground mb-4">Map placeholder - In a real implementation, this would be an interactive map</p>
-              <p className="font-medium">CertiQuest Headquarters, 123 Education Street, Mumbai</p>
-            </div>
-          </div>
-        </div>
-      </section> 
-      */}
       
       {/* FAQ Section */}
       <section className="py-16 bg-muted/30">

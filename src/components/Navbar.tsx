@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
-import { Menu, Search, ShoppingCart, X, User, Shield } from 'lucide-react';
+import { Menu, Search, ShoppingCart, X, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -93,7 +94,7 @@ const Navbar = () => {
           <NavLink to="/courses">Courses</NavLink>
           <NavLink to="/about">About</NavLink>
           <NavLink to="/contact">Contact</NavLink>
-          <NavLink to="/admin/dashboard">Admin</NavLink>
+          {/* Admin button removed */}
         </nav>
 
         {/* Desktop Right Section */}
