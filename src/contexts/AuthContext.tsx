@@ -20,6 +20,7 @@ interface AuthContextType {
   logout: () => void;
   updateUserCourses: (courseId: string) => void;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  resetPassword: (password: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth event:', event);
         setSession(session);
         if (session?.user) {
           // Convert Supabase user to our AuthUser format
@@ -49,6 +51,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isAdmin: session.user.email === ADMIN_EMAIL
           };
           setUser(authUser);
+          
+          // Check if this is a password recovery event
+          if (event === 'PASSWORD_RECOVERY') {
+            // We don't auto-login on password recovery events
+            // Instead we'll redirect to the login page with a message
+            toast.info("Please set your new password");
+            // The app will handle this in the App.tsx component
+          }
         } else {
           setUser(null);
         }
@@ -97,7 +107,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Set admin flag if this is the admin email
       if (isAdmin) {
-        localStorage.setItem('adminAuth', 'true');
         toast.success('Admin login successful');
       } else {
         toast.success('Login successful');
@@ -175,6 +184,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return false;
     }
   };
+  
+  const resetPassword = async (password: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) {
+        toast.error(error.message || 'Password reset failed');
+        return false;
+      }
+
+      toast.success('Password has been reset successfully. Please login with your new password.');
+      return true;
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      toast.error(error?.message || 'An error occurred during password reset');
+      return false;
+    }
+  };
 
   const updateUserCourses = async (courseId: string) => {
     if (!user) return;
@@ -210,7 +239,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (error) {
       toast.error('Error signing out');
     } else {
-      localStorage.removeItem('adminAuth');
       toast.info('You have been logged out');
     }
   };
@@ -223,7 +251,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       register, 
       logout, 
       updateUserCourses,
-      changePassword 
+      changePassword,
+      resetPassword
     }}>
       {children}
     </AuthContext.Provider>

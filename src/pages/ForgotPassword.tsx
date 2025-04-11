@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import Layout from "@/components/Layout";
 import emailjs from '@emailjs/browser';
 
@@ -32,7 +31,7 @@ const ForgotPassword = () => {
     try {
       // Send password reset email via Supabase
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       
       if (error) {
@@ -46,7 +45,7 @@ const ForgotPassword = () => {
             {
               to_email: email,
               to_name: email.split('@')[0],
-              reset_link: `${window.location.origin}/login`,
+              reset_link: `${window.location.origin}/reset-password`,
               subject: 'Password Reset Request - CertiQuest'
             },
             'RtNvifJglWDbjZCyo' // Replace with your EmailJS public key
