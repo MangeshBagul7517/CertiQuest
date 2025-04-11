@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 // Define admin email
-const ADMIN_EMAIL = "admin@certiquest.com";
+const ADMIN_EMAIL = "mangeshbbagul@gmail.com";
 
 const AdminProtectedRoute = () => {
   const { user } = useAuth();
