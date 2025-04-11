@@ -10,6 +10,7 @@ import { Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import Layout from "@/components/Layout";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -113,18 +114,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="w-full bg-white py-4 px-6 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold text-primary">CertiQuest</Link>
-          <nav>
-            <Link to="/courses" className="text-gray-600 hover:text-primary mx-3">Courses</Link>
-            <Link to="/login" className="text-gray-600 hover:text-primary mx-3">Login</Link>
-          </nav>
-        </div>
-      </header>
-      
+    <Layout>
       <div className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
@@ -281,7 +271,7 @@ const ForgotPassword = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </Layout>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Define admin email
+const ADMIN_EMAIL = "admin@certiquest.com";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             email: session.user.email || '',
             enrolledCourses: session.user.user_metadata.enrolledCourses || [],
             // Check if the user is an admin
-            isAdmin: session.user.email === "mangeshbbagul@gmail.com"
+            isAdmin: session.user.email === ADMIN_EMAIL
           };
           setUser(authUser);
         } else {
@@ -62,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           email: session.user.email || '',
           enrolledCourses: session.user.user_metadata.enrolledCourses || [],
           // Check if the user is an admin
-          isAdmin: session.user.email === "mangeshbbagul@gmail.com"
+          isAdmin: session.user.email === ADMIN_EMAIL
         };
         setUser(authUser);
       }
@@ -77,8 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Check if admin credentials (hardcoded for demo)
-      const isAdmin = email === "mangeshbbagul@gmail.com";
+      // Check if admin credentials
+      const isAdmin = email === ADMIN_EMAIL;
       
       // Regular login with Supabase
       const { error } = await supabase.auth.signInWithPassword({

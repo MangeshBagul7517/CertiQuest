@@ -4,6 +4,9 @@ import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+// Define admin email
+const ADMIN_EMAIL = "admin@certiquest.com";
+
 const AdminProtectedRoute = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -12,7 +15,7 @@ const AdminProtectedRoute = () => {
   useEffect(() => {
     const checkAdmin = async () => {
       // Check if the user is logged in and is an admin
-      const isAdminUser = user?.email === "mangeshbbagul@gmail.com";
+      const isAdminUser = user?.email === ADMIN_EMAIL;
       
       if (!user) {
         toast.error('Please login first');

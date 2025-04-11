@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import Layout from "@/components/Layout";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -41,7 +42,7 @@ const Login = () => {
       const success = await login(email, password);
       if (success) {
         // Check if admin login (handled in AuthContext)
-        if (email === "mangeshbbagul@gmail.com") {
+        if (email === "admin@certiquest.com") {
           navigate("/admin/dashboard");
           return;
         }
@@ -61,18 +62,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="w-full bg-white py-4 px-6 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold text-primary">CertiQuest</Link>
-          <nav>
-            <Link to="/courses" className="text-gray-600 hover:text-primary mx-3">Courses</Link>
-            <Link to="/register" className="text-gray-600 hover:text-primary mx-3">Register</Link>
-          </nav>
-        </div>
-      </header>
-      
+    <Layout>
       <div className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
@@ -160,7 +150,7 @@ const Login = () => {
           </CardFooter>
         </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

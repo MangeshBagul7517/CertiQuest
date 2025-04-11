@@ -72,9 +72,10 @@ const App = () => (
                 
                 {/* Admin Routes */}
                 <Route element={<AdminProtectedRoute />}>
-                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
                 </Route>
                 
+                {/* Handle all routes, including 404 */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
