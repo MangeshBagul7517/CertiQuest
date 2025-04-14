@@ -18,23 +18,62 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
   const navigate = useNavigate();
   const { resetPassword } = useAuth();
 
   useEffect(() => {
     // Check if we have a valid hash for password reset
-    const checkHash = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast.error("Invalid or expired password reset link");
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("Session error:", error);
+          toast.error("Error validating your session");
+          navigate("/forgot-password");
+          return;
+        }
+
+        if (!session) {
+          // Check if we're in a recovery flow from hash parameters
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const type = hashParams.get('type');
+          const accessToken = hashParams.get('access_token');
+          
+          if (type === 'recovery' && accessToken) {
+            // Set the session using the access_token
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: '',
+            });
+            
+            if (error) {
+              console.error("Error setting session:", error);
+              toast.error("Invalid or expired password reset link");
+              navigate("/forgot-password");
+              return;
+            }
+            
+            if (data.session) {
+              setHasSession(true);
+              return;
+            }
+          }
+          
+          toast.error("Invalid or expired password reset link");
+          navigate("/forgot-password");
+        } else {
+          setHasSession(true);
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
+        toast.error("An error occurred while checking your session");
         navigate("/forgot-password");
       }
     };
 
-    checkHash();
+    checkSession();
   }, [navigate]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -86,6 +125,11 @@ const ResetPassword = () => {
                 <p className="text-center">
                   Your password has been reset successfully. Redirecting to login...
                 </p>
+              </div>
+            ) : !hasSession ? (
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                <p className="text-center">Validating your reset link...</p>
               </div>
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-4">

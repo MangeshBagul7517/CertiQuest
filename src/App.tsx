@@ -64,44 +64,65 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // Main App component
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <CartProvider>
-          <AdminProvider>
-            <Toaster position="top-right" closeButton={true} richColors={true} />
-            <BrowserRouter>
-              <ScrollRestoration />
-              <ScrollToTop />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/courses" element={<Courses />} />
-                <Route path="/course/:id" element={<CourseDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/dashboard/*" element={<Dashboard />} />
-                
-                {/* Admin Routes */}
-                <Route element={<AdminProtectedRoute />}>
-                  <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
-                </Route>
-                
-                {/* Handle all routes, including 404 */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </AdminProvider>
-        </CartProvider>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    // Handle password reset URLs
+    const handlePasswordReset = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error retrieving session:', error);
+        return;
+      }
+      
+      if (data?.session?.user && new URLSearchParams(window.location.hash).get('type') === 'recovery') {
+        // We have a password reset request
+        window.location.replace('/reset-password');
+      }
+    };
+    
+    handlePasswordReset();
+  }, []);
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <CartProvider>
+            <AdminProvider>
+              <Toaster position="top-right" closeButton={true} richColors={true} />
+              <BrowserRouter>
+                <ScrollRestoration />
+                <ScrollToTop />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/courses" element={<Courses />} />
+                  <Route path="/course/:id" element={<CourseDetail />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/dashboard/*" element={<Dashboard />} />
+                  
+                  {/* Admin Routes */}
+                  <Route element={<AdminProtectedRoute />}>
+                    <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
+                  </Route>
+                  
+                  {/* Handle all routes, including 404 */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </AdminProvider>
+          </CartProvider>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

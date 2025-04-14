@@ -19,9 +19,42 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
-    // Check both local storage and session storage
-    const adminAuth = sessionStorage.getItem('isAdmin') === 'true';
-    setIsAdmin(adminAuth);
+    const checkAdminStatus = () => {
+      // Check both session storage and user email
+      const adminAuth = sessionStorage.getItem('isAdmin') === 'true';
+      
+      // Also verify with Supabase session if available
+      supabase.auth.getSession().then(({ data }) => {
+        const isAdminEmail = data.session?.user?.email === ADMIN_EMAIL;
+        if (isAdminEmail) {
+          sessionStorage.setItem('isAdmin', 'true');
+          setIsAdmin(true);
+        } else if (!adminAuth) {
+          // Only set to false if both checks fail
+          setIsAdmin(false);
+        }
+      });
+      
+      setIsAdmin(adminAuth);
+    };
+    
+    // Check on initial load
+    checkAdminStatus();
+    
+    // Set up listener for changes
+    const authListener = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user?.email === ADMIN_EMAIL) {
+        sessionStorage.setItem('isAdmin', 'true');
+        setIsAdmin(true);
+      } else if (event === 'SIGNED_OUT') {
+        sessionStorage.removeItem('isAdmin');
+        setIsAdmin(false);
+      }
+    });
+    
+    return () => {
+      authListener.data.subscription.unsubscribe();
+    };
   }, []);
 
   const adminLogout = () => {

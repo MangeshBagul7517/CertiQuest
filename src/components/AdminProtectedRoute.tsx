@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -10,6 +10,7 @@ const ADMIN_EMAIL = "mangeshbbagul@gmail.com";
 const AdminProtectedRoute = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isVerified, setIsVerified] = useState(false);
   
   useEffect(() => {
@@ -29,18 +30,15 @@ const AdminProtectedRoute = () => {
         return;
       }
       
+      // Store admin status in session storage to persist across page refreshes
+      sessionStorage.setItem('isAdmin', 'true');
       setIsVerified(true);
     };
     
-    // Always recheck admin status when this component renders
+    // Always recheck admin status when this component renders or the path changes
     setIsVerified(false);
     checkAdmin();
-    
-    // Store admin status in session storage to persist across page refreshes
-    if (user?.email === ADMIN_EMAIL) {
-      sessionStorage.setItem('isAdmin', 'true');
-    }
-  }, [navigate, user]);
+  }, [navigate, user, location.pathname]);
   
   return isVerified ? <Outlet /> : null;
 };
