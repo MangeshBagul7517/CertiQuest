@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import { useLocation } from 'react-router-dom';
 import DiscountBanner from './DiscountBanner';
+import WhatsAppWidget from './WhatsAppWidget';
 
 interface LayoutProps {
   children: ReactNode;
@@ -32,6 +33,7 @@ const Layout = ({ children }: LayoutProps) => {
         {children}
       </main>
       <Footer />
+      <WhatsAppWidget />
     </div>
   );
 };
