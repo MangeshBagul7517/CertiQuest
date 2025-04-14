@@ -52,6 +52,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           };
           setUser(authUser);
           
+          // Store admin status if this is the admin user
+          if (authUser.isAdmin) {
+            sessionStorage.setItem('isAdmin', 'true');
+          } else {
+            sessionStorage.removeItem('isAdmin');
+          }
+          
           // Check if this is a password recovery event
           if (event === 'PASSWORD_RECOVERY') {
             // We don't auto-login on password recovery events
@@ -61,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           setUser(null);
+          sessionStorage.removeItem('isAdmin');
         }
       }
     );
@@ -79,6 +87,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           isAdmin: session.user.email === ADMIN_EMAIL
         };
         setUser(authUser);
+        
+        // Store admin status if this is the admin user
+        if (authUser.isAdmin) {
+          sessionStorage.setItem('isAdmin', 'true');
+        }
       }
       setIsLoading(false);
     });
@@ -235,6 +248,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    sessionStorage.removeItem('isAdmin');
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error('Error signing out');

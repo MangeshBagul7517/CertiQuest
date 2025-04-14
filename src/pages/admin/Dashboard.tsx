@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -50,13 +49,37 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [driveLink, setDriveLink] = useState('');
   const [enrollmentRequests, setEnrollmentRequests] = useState<EnrollmentForm[]>([]);
+  const { fetchSupabaseUsers } = useAdmin();
   
   useEffect(() => {
-    // Load users from localStorage
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    }
+    // Load users from Supabase
+    const loadUsers = async () => {
+      setIsLoading(true);
+      try {
+        const supabaseUsers = await fetchSupabaseUsers();
+        
+        if (supabaseUsers && supabaseUsers.length > 0) {
+          setUsers(supabaseUsers);
+        } else {
+          // Fallback to localStorage if there's an issue with Supabase
+          const storedUsers = localStorage.getItem('users');
+          if (storedUsers) {
+            setUsers(JSON.parse(storedUsers));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        toast.error("Could not load users");
+        
+        // Fallback to localStorage
+        const storedUsers = localStorage.getItem('users');
+        if (storedUsers) {
+          setUsers(JSON.parse(storedUsers));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
     // Load enrollment requests
     const storedRequests = localStorage.getItem('enrollmentRequests');
@@ -68,11 +91,11 @@ const UserManagement = () => {
     const fetchCourses = async () => {
       const loadedCourses = await loadCourses();
       setCourses(loadedCourses);
-      setIsLoading(false);
     };
     
+    loadUsers();
     fetchCourses();
-  }, []);
+  }, [fetchSupabaseUsers]);
   
   const openAssignDialog = (user: any) => {
     setSelectedUser(user);
@@ -221,8 +244,8 @@ const UserManagement = () => {
   
   const filteredUsers = searchTerm
     ? users.filter(user => 
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : users;
   

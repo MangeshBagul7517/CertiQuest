@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { CartProvider } from "@/contexts/CartContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { AuthProvider } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
@@ -47,6 +48,20 @@ const ScrollRestoration = () => {
   
   return null;
 };
+
+// Check for auth status changes
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event);
+  
+  // Check for admin status
+  const isAdmin = session?.user?.email === "mangeshbbagul@gmail.com";
+  
+  if (isAdmin) {
+    sessionStorage.setItem('isAdmin', 'true');
+  } else if (event === 'SIGNED_OUT') {
+    sessionStorage.removeItem('isAdmin');
+  }
+});
 
 // Main App component
 const App = () => (

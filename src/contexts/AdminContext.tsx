@@ -1,37 +1,78 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminContextType {
   isAdmin: boolean;
   adminLogout: () => void;
   checkAdminStatus: () => boolean;
+  fetchSupabaseUsers: () => Promise<any[]>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
+
+// Define admin email for consistency
+const ADMIN_EMAIL = "mangeshbbagul@gmail.com";
 
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
-    const adminAuth = localStorage.getItem('adminAuth');
-    setIsAdmin(adminAuth === 'true');
+    // Check both local storage and session storage
+    const adminAuth = sessionStorage.getItem('isAdmin') === 'true';
+    setIsAdmin(adminAuth);
   }, []);
 
   const adminLogout = () => {
-    localStorage.removeItem('adminAuth');
+    sessionStorage.removeItem('isAdmin');
     setIsAdmin(false);
     toast.info('Admin logged out');
   };
 
   const checkAdminStatus = () => {
-    const adminAuth = localStorage.getItem('adminAuth');
-    return adminAuth === 'true';
+    return sessionStorage.getItem('isAdmin') === 'true';
+  };
+  
+  const fetchSupabaseUsers = async () => {
+    try {
+      // Only admins should be able to fetch users
+      if (!isAdmin) {
+        console.error('Only admins can fetch users');
+        return [];
+      }
+      
+      // Get users from Supabase
+      const { data: userData, error } = await supabase.auth.admin.listUsers();
+      
+      if (error) {
+        console.error('Error fetching users:', error);
+        return [];
+      }
+      
+      // Transform the data to match the expected format
+      const formattedUsers = userData.users.map(user => ({
+        id: user.id,
+        name: user.user_metadata?.name || 'Unknown',
+        email: user.email || '',
+        enrolledCourses: user.user_metadata?.enrolledCourses || [],
+        isAdmin: user.email === ADMIN_EMAIL
+      }));
+      
+      return formattedUsers;
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
   };
 
   return (
-    <AdminContext.Provider value={{ isAdmin, adminLogout, checkAdminStatus }}>
+    <AdminContext.Provider value={{ 
+      isAdmin, 
+      adminLogout, 
+      checkAdminStatus,
+      fetchSupabaseUsers
+    }}>
       {children}
     </AdminContext.Provider>
   );

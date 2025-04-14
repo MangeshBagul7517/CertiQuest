@@ -32,7 +32,14 @@ const AdminProtectedRoute = () => {
       setIsVerified(true);
     };
     
+    // Always recheck admin status when this component renders
+    setIsVerified(false);
     checkAdmin();
+    
+    // Store admin status in session storage to persist across page refreshes
+    if (user?.email === ADMIN_EMAIL) {
+      sessionStorage.setItem('isAdmin', 'true');
+    }
   }, [navigate, user]);
   
   return isVerified ? <Outlet /> : null;
