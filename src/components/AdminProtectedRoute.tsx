@@ -38,6 +38,10 @@ const AdminProtectedRoute = () => {
     // Always recheck admin status when this component renders or the path changes
     setIsVerified(false);
     checkAdmin();
+
+    // Add a console log to debug the admin status
+    console.log('AdminProtectedRoute - User:', user);
+    console.log('AdminProtectedRoute - isAdmin in sessionStorage:', sessionStorage.getItem('isAdmin'));
   }, [navigate, user, location.pathname]);
   
   return isVerified ? <Outlet /> : null;

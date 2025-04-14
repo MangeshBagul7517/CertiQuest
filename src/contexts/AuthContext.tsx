@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,11 +34,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Initialize session and set up listener
   useEffect(() => {
+    console.log('AuthContext - Initializing');
+    
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth event:', event);
+        console.log('AuthContext - Auth event:', event);
         setSession(session);
+        
         if (session?.user) {
           // Convert Supabase user to our AuthUser format
           const authUser: AuthUser = {
@@ -54,17 +56,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           // Store admin status if this is the admin user
           if (authUser.isAdmin) {
+            console.log('AuthContext - Setting admin status in sessionStorage');
             sessionStorage.setItem('isAdmin', 'true');
           } else {
             sessionStorage.removeItem('isAdmin');
-          }
-          
-          // Check if this is a password recovery event
-          if (event === 'PASSWORD_RECOVERY') {
-            // We don't auto-login on password recovery events
-            // Instead we'll redirect to the login page with a message
-            toast.info("Please set your new password");
-            // The app will handle this in the App.tsx component
           }
         } else {
           setUser(null);
@@ -75,7 +70,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('AuthContext - Got session:', session ? 'yes' : 'no');
       setSession(session);
+      
       if (session?.user) {
         // Convert Supabase user to our AuthUser format
         const authUser: AuthUser = {
@@ -90,6 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Store admin status if this is the admin user
         if (authUser.isAdmin) {
+          console.log('AuthContext - Setting admin status in sessionStorage (initial)');
           sessionStorage.setItem('isAdmin', 'true');
         }
       }
@@ -200,19 +198,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const resetPassword = async (password: string): Promise<boolean> => {
     try {
+      console.log('AuthContext - Resetting password');
       const { error } = await supabase.auth.updateUser({
         password: password
       });
 
       if (error) {
+        console.error('AuthContext - Password reset error:', error);
         toast.error(error.message || 'Password reset failed');
         return false;
       }
 
+      console.log('AuthContext - Password reset successful');
       toast.success('Password has been reset successfully. Please login with your new password.');
+      
+      // Sign out the user after password reset to force a fresh login
+      await supabase.auth.signOut();
+      
       return true;
     } catch (error: any) {
-      console.error('Password reset error:', error);
+      console.error('AuthContext - Password reset exception:', error);
       toast.error(error?.message || 'An error occurred during password reset');
       return false;
     }

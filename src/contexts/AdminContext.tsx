@@ -29,13 +29,18 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         if (isAdminEmail) {
           sessionStorage.setItem('isAdmin', 'true');
           setIsAdmin(true);
-        } else if (!adminAuth) {
+          console.log('AdminContext - Admin confirmed via Supabase session');
+        } else if (adminAuth) {
+          // If session storage says admin but Supabase doesn't, trust session storage
+          // This handles cases where the page is refreshed
+          setIsAdmin(true);
+          console.log('AdminContext - Admin confirmed via sessionStorage');
+        } else {
           // Only set to false if both checks fail
           setIsAdmin(false);
+          console.log('AdminContext - Not admin');
         }
       });
-      
-      setIsAdmin(adminAuth);
     };
     
     // Check on initial load
@@ -43,12 +48,15 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     
     // Set up listener for changes
     const authListener = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('AdminContext - Auth state changed:', event);
       if (event === 'SIGNED_IN' && session?.user?.email === ADMIN_EMAIL) {
         sessionStorage.setItem('isAdmin', 'true');
         setIsAdmin(true);
+        console.log('AdminContext - Admin signed in');
       } else if (event === 'SIGNED_OUT') {
         sessionStorage.removeItem('isAdmin');
         setIsAdmin(false);
+        console.log('AdminContext - User signed out');
       }
     });
     
@@ -64,24 +72,30 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const checkAdminStatus = () => {
-    return sessionStorage.getItem('isAdmin') === 'true';
+    const status = sessionStorage.getItem('isAdmin') === 'true';
+    console.log('AdminContext - Checking admin status:', status);
+    return status;
   };
   
   const fetchSupabaseUsers = async () => {
     try {
       // Only admins should be able to fetch users
-      if (!isAdmin) {
+      if (!isAdmin && sessionStorage.getItem('isAdmin') !== 'true') {
         console.error('Only admins can fetch users');
         return [];
       }
       
-      // Get users from Supabase
+      console.log('AdminContext - Fetching users from Supabase');
+      // Direct communication with the REST API for admin functions
+      // Gets all users from Supabase
       const { data: userData, error } = await supabase.auth.admin.listUsers();
       
       if (error) {
         console.error('Error fetching users:', error);
         return [];
       }
+      
+      console.log('AdminContext - Users fetched:', userData);
       
       // Transform the data to match the expected format
       const formattedUsers = userData.users.map(user => ({

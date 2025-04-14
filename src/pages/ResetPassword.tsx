@@ -23,51 +23,64 @@ const ResetPassword = () => {
   const { resetPassword } = useAuth();
 
   useEffect(() => {
-    // Check if we have a valid hash for password reset
+    // Check if we have a valid session for password reset
     const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error("Session error:", error);
-          toast.error("Error validating your session");
-          navigate("/forgot-password");
-          return;
-        }
-
-        if (!session) {
-          // Check if we're in a recovery flow from hash parameters
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          const type = hashParams.get('type');
-          const accessToken = hashParams.get('access_token');
-          
-          if (type === 'recovery' && accessToken) {
-            // Set the session using the access_token
+        console.log('ResetPassword - Checking session');
+        
+        // First check URL hash parameters (for direct links from email)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const type = hashParams.get('type');
+        const accessToken = hashParams.get('access_token');
+        
+        console.log('ResetPassword - URL parameters:', { type, accessToken: accessToken ? 'exists' : 'missing' });
+        
+        if (type === 'recovery' && accessToken) {
+          console.log('ResetPassword - Recovery token found in URL');
+          // Set the session using the token from the URL
+          try {
             const { data, error } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: '',
             });
             
             if (error) {
-              console.error("Error setting session:", error);
+              console.error('ResetPassword - Error setting session from token:', error);
               toast.error("Invalid or expired password reset link");
               navigate("/forgot-password");
               return;
             }
             
             if (data.session) {
+              console.log('ResetPassword - Session successfully set from token');
               setHasSession(true);
               return;
             }
+          } catch (err) {
+            console.error('ResetPassword - Exception during session setting:', err);
           }
-          
+        }
+        
+        // Check if we already have a valid session
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("ResetPassword - Session error:", error);
+          toast.error("Error validating your session");
+          navigate("/forgot-password");
+          return;
+        }
+
+        if (!session) {
+          console.log('ResetPassword - No session found');
           toast.error("Invalid or expired password reset link");
           navigate("/forgot-password");
         } else {
+          console.log('ResetPassword - Valid session found');
           setHasSession(true);
         }
       } catch (error) {
-        console.error("Session check error:", error);
+        console.error("ResetPassword - Session check error:", error);
         toast.error("An error occurred while checking your session");
         navigate("/forgot-password");
       }
@@ -92,8 +105,10 @@ const ResetPassword = () => {
     setIsLoading(true);
     
     try {
+      console.log('ResetPassword - Attempting to reset password');
       const success = await resetPassword(password);
       if (success) {
+        console.log('ResetPassword - Password reset successful');
         setResetComplete(true);
         // Wait a moment before redirecting
         setTimeout(() => {
@@ -101,7 +116,7 @@ const ResetPassword = () => {
         }, 3000);
       }
     } catch (error: any) {
-      console.error("Password reset error:", error);
+      console.error("ResetPassword - Password reset error:", error);
       toast.error(error?.message || "An error occurred during password reset");
     } finally {
       setIsLoading(false);

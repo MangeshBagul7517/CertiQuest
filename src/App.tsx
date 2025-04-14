@@ -58,8 +58,10 @@ supabase.auth.onAuthStateChange((event, session) => {
   
   if (isAdmin) {
     sessionStorage.setItem('isAdmin', 'true');
+    console.log('Admin status set in sessionStorage');
   } else if (event === 'SIGNED_OUT') {
     sessionStorage.removeItem('isAdmin');
+    console.log('Admin status removed from sessionStorage');
   }
 });
 
@@ -68,16 +70,42 @@ const App = () => {
   useEffect(() => {
     // Handle password reset URLs
     const handlePasswordReset = async () => {
+      // Check for hash parameters in URL
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
+      
+      console.log('URL hash parameters:', { type, accessToken: accessToken ? 'exists' : 'missing' });
+      
+      // If this is a password recovery link with a token
+      if (type === 'recovery' && accessToken) {
+        console.log('Password recovery detected, setting session with token');
+        try {
+          // Set the session using the token from the URL
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: '',
+          });
+          
+          if (error) {
+            console.error('Error setting session from URL token:', error);
+          } else {
+            console.log('Session set successfully, redirecting to reset-password');
+            // Redirect to reset password page
+            window.location.href = '/reset-password';
+            return;
+          }
+        } catch (err) {
+          console.error('Exception during session setting:', err);
+        }
+      }
+      
+      // Regular session check
       const { data, error } = await supabase.auth.getSession();
       
       if (error) {
         console.error('Error retrieving session:', error);
         return;
-      }
-      
-      if (data?.session?.user && new URLSearchParams(window.location.hash).get('type') === 'recovery') {
-        // We have a password reset request
-        window.location.replace('/reset-password');
       }
     };
     
