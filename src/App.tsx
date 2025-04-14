@@ -49,22 +49,6 @@ const ScrollRestoration = () => {
   return null;
 };
 
-// Check for auth status changes
-supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', event);
-  
-  // Check for admin status
-  const isAdmin = session?.user?.email === "mangeshbbagul@gmail.com";
-  
-  if (isAdmin) {
-    sessionStorage.setItem('isAdmin', 'true');
-    console.log('Admin status set in sessionStorage');
-  } else if (event === 'SIGNED_OUT') {
-    sessionStorage.removeItem('isAdmin');
-    console.log('Admin status removed from sessionStorage');
-  }
-});
-
 // Main App component
 const App = () => {
   useEffect(() => {
