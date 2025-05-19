@@ -40,7 +40,7 @@ const RESPONSES: Record<string, string[]> = {
     'Would you like to know more about any specific course? Or would you like to share your contact details to receive personalized course recommendations?'
   ],
   'enroll': [
-    'To enroll in a course, you can create an account, browse our courses, and click on "Enroll" for the course you're interested in.',
+    'To enroll in a course, you can create an account, browse our courses, and click on "Enroll" for the course you\'re interested in.',
     'Would you like me to collect your details so our team can help you with enrollment?'
   ],
   'price': [
