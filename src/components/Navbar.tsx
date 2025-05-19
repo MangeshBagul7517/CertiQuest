@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,8 @@ const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
-  const { isAdmin } = useAdmin();
+  const admin = useAdmin();
+  const isAdmin = admin.isAdmin;
 
   // Update scroll state
   useEffect(() => {
@@ -94,7 +94,9 @@ const Navbar = () => {
           <NavLink to="/courses">Courses</NavLink>
           <NavLink to="/about">About</NavLink>
           <NavLink to="/contact">Contact</NavLink>
-          {/* Admin button removed */}
+          {isAdmin && (
+            <NavLink to="/admin/dashboard">Admin</NavLink>
+          )}
         </nav>
 
         {/* Desktop Right Section */}

@@ -18,12 +18,15 @@ interface AdminContextType {
   users: User[];
   loading: boolean;
   error: string | null;
+  isAdmin: boolean; // Add this property
   addCourse: (course: Omit<Course, 'id'>) => Promise<void>;
   updateCourse: (id: string, course: Partial<Course>) => Promise<void>;
   deleteCourse: (id: string) => Promise<void>;
   assignCourseToUser: (userId: string, courseId: string) => Promise<void>;
   unassignCourseFromUser: (userId: string, courseId: string) => Promise<void>;
   getUserCourses: (userId: string) => Promise<string[]>;
+  fetchSupabaseUsers: () => Promise<User[]>; // Add this method
+  adminLogout: () => void; // Add this method
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -45,22 +48,41 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false); // Add this state
 
   useEffect(() => {
     fetchCourses();
     fetchUsers();
+    
+    // Check if user is admin
+    const checkAdmin = () => {
+      const isAdminValue = sessionStorage.getItem('isAdmin');
+      setIsAdmin(isAdminValue === 'true');
+    };
+    
+    checkAdmin();
+    
+    // Listen for admin status changes
+    window.addEventListener('storage', checkAdmin);
+    
+    return () => {
+      window.removeEventListener('storage', checkAdmin);
+    };
   }, []);
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('courses')
-        .select('*');
-
-      if (error) throw error;
-
-      setCourses(data || []);
+      
+      // Since we don't have the 'courses' table in Supabase yet, 
+      // let's fallback to localStorage
+      const storedCourses = localStorage.getItem('courses');
+      if (storedCourses) {
+        setCourses(JSON.parse(storedCourses));
+      } else {
+        // Initialize with empty array if not in localStorage
+        setCourses([]);
+      }
     } catch (error) {
       console.error('Error fetching courses:', error);
       setError('Failed to fetch courses');
@@ -74,14 +96,15 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
     try {
       setLoading(true);
       
-      // Get users from auth.users
-      const { data: authUsers, error: authError } = await supabase
-        .from('users')
-        .select('*');
-
-      if (authError) throw authError;
-      
-      setUsers(authUsers || []);
+      // Since we don't have the 'users' table in Supabase yet,
+      // let's fallback to localStorage
+      const storedUsers = localStorage.getItem('users');
+      if (storedUsers) {
+        setUsers(JSON.parse(storedUsers));
+      } else {
+        // Initialize with empty array if not in localStorage
+        setUsers([]);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Failed to fetch users');
@@ -91,17 +114,39 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
     }
   };
 
+  const fetchSupabaseUsers = async (): Promise<User[]> => {
+    try {
+      // Since we don't have the 'users' table in Supabase yet,
+      // let's return users from localStorage
+      const storedUsers = localStorage.getItem('users');
+      if (storedUsers) {
+        return JSON.parse(storedUsers);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching Supabase users:', error);
+      toast.error('Failed to fetch users from Supabase');
+      return [];
+    }
+  };
+
   const addCourse = async (course: Omit<Course, 'id'>) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('courses')
-        .insert([course])
-        .select();
-
-      if (error) throw error;
-
-      setCourses([...courses, data[0]]);
+      
+      // Generate random ID (in a real app, Supabase would do this)
+      const newCourse = {
+        ...course,
+        id: crypto.randomUUID()
+      };
+      
+      // Update local state
+      const updatedCourses = [...courses, newCourse];
+      setCourses(updatedCourses);
+      
+      // Save to localStorage
+      localStorage.setItem('courses', JSON.stringify(updatedCourses));
+      
       toast.success('Course added successfully');
     } catch (error) {
       console.error('Error adding course:', error);
@@ -115,14 +160,17 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
   const updateCourse = async (id: string, course: Partial<Course>) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('courses')
-        .update(course)
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCourses(courses.map(c => c.id === id ? { ...c, ...course } : c));
+      
+      // Update in local state
+      const updatedCourses = courses.map(c => 
+        c.id === id ? { ...c, ...course } : c
+      );
+      
+      setCourses(updatedCourses);
+      
+      // Save to localStorage
+      localStorage.setItem('courses', JSON.stringify(updatedCourses));
+      
       toast.success('Course updated successfully');
     } catch (error) {
       console.error('Error updating course:', error);
@@ -136,14 +184,14 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
   const deleteCourse = async (id: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('courses')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCourses(courses.filter(c => c.id !== id));
+      
+      // Delete from local state
+      const updatedCourses = courses.filter(c => c.id !== id);
+      setCourses(updatedCourses);
+      
+      // Save to localStorage
+      localStorage.setItem('courses', JSON.stringify(updatedCourses));
+      
       toast.success('Course deleted successfully');
     } catch (error) {
       console.error('Error deleting course:', error);
@@ -157,12 +205,21 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
   const assignCourseToUser = async (userId: string, courseId: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('user_courses')
-        .insert([{ user_id: userId, course_id: courseId }]);
-
-      if (error) throw error;
-
+      
+      // Store user_courses mappings in localStorage
+      const userCourses = JSON.parse(localStorage.getItem('user_courses') || '[]');
+      
+      // Check if mapping already exists
+      const exists = userCourses.some(
+        (uc: { user_id: string, course_id: string }) => 
+          uc.user_id === userId && uc.course_id === courseId
+      );
+      
+      if (!exists) {
+        userCourses.push({ user_id: userId, course_id: courseId });
+        localStorage.setItem('user_courses', JSON.stringify(userCourses));
+      }
+      
       toast.success('Course assigned successfully');
     } catch (error) {
       console.error('Error assigning course:', error);
@@ -176,14 +233,18 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
   const unassignCourseFromUser = async (userId: string, courseId: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('user_courses')
-        .delete()
-        .eq('user_id', userId)
-        .eq('course_id', courseId);
-
-      if (error) throw error;
-
+      
+      // Get user_courses from localStorage
+      const userCourses = JSON.parse(localStorage.getItem('user_courses') || '[]');
+      
+      // Filter out the mapping
+      const updatedUserCourses = userCourses.filter(
+        (uc: { user_id: string, course_id: string }) => 
+          !(uc.user_id === userId && uc.course_id === courseId)
+      );
+      
+      localStorage.setItem('user_courses', JSON.stringify(updatedUserCourses));
+      
       toast.success('Course unassigned successfully');
     } catch (error) {
       console.error('Error unassigning course:', error);
@@ -196,20 +257,28 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
 
   const getUserCourses = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_courses')
-        .select('course_id')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-
-      return data.map(item => item.course_id);
+      // Get user_courses from localStorage
+      const userCourses = JSON.parse(localStorage.getItem('user_courses') || '[]');
+      
+      // Filter courses for the user
+      const userCoursesIds = userCourses
+        .filter((uc: { user_id: string, course_id: string }) => uc.user_id === userId)
+        .map((uc: { user_id: string, course_id: string }) => uc.course_id);
+      
+      return userCoursesIds;
     } catch (error) {
       console.error('Error fetching user courses:', error);
       setError('Failed to fetch user courses');
       toast.error('Failed to fetch user courses');
       return [];
     }
+  };
+
+  const adminLogout = () => {
+    // Clear admin status from sessionStorage
+    sessionStorage.removeItem('isAdmin');
+    setIsAdmin(false);
+    toast.success('Logged out successfully');
   };
 
   return (
@@ -219,12 +288,15 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
         users,
         loading,
         error,
+        isAdmin,
         addCourse,
         updateCourse,
         deleteCourse,
         assignCourseToUser,
         unassignCourseFromUser,
         getUserCourses,
+        fetchSupabaseUsers,
+        adminLogout,
       }}
     >
       {children}
