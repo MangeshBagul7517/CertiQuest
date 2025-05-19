@@ -1,3 +1,4 @@
+
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,12 +44,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         
         if (session?.user) {
+          console.log('Auth user data:', session.user);
           // Convert Supabase user to our AuthUser format
           const authUser: AuthUser = {
             id: session.user.id,
-            name: session.user.user_metadata.name || '',
+            name: session.user.user_metadata?.name || '',
             email: session.user.email || '',
-            enrolledCourses: session.user.user_metadata.enrolledCourses || [],
+            enrolledCourses: session.user.user_metadata?.enrolledCourses || [],
             // Check if the user is an admin
             isAdmin: session.user.email === ADMIN_EMAIL
           };
@@ -74,12 +76,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       
       if (session?.user) {
+        console.log('Initial user data:', session.user);
         // Convert Supabase user to our AuthUser format
         const authUser: AuthUser = {
           id: session.user.id,
-          name: session.user.user_metadata.name || '',
+          name: session.user.user_metadata?.name || '',
           email: session.user.email || '',
-          enrolledCourses: session.user.user_metadata.enrolledCourses || [],
+          enrolledCourses: session.user.user_metadata?.enrolledCourses || [],
           // Check if the user is an admin
           isAdmin: session.user.email === ADMIN_EMAIL
         };
@@ -102,19 +105,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
+      console.log('Attempting login for:', email);
       // Check if admin credentials
       const isAdmin = email === ADMIN_EMAIL;
       
       // Regular login with Supabase
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) {
+        console.error('Login error:', error);
         toast.error('Login failed: ' + error.message);
         return false;
       }
+      
+      console.log('Login successful:', data);
       
       // Set admin flag if this is the admin email
       if (isAdmin) {
@@ -136,8 +143,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
+      console.log('Attempting registration for:', email);
       // Register with Supabase
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -149,11 +157,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
+        console.error('Registration error:', error);
         toast.error(error.message || 'Registration failed');
         return false;
       }
 
+      console.log('Registration successful:', data);
       toast.success('Registration successful! Please verify your email if required.');
+      
+      // Save to localStorage as well for backup
+      const storedUsers = localStorage.getItem('users') || '[]';
+      const users = JSON.parse(storedUsers);
+      if (data.user) {
+        users.push({
+          id: data.user.id,
+          name,
+          email,
+          enrolledCourses: [],
+          isAdmin: email === ADMIN_EMAIL
+        });
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+      
       return true;
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -245,6 +270,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ...user,
         enrolledCourses
       });
+      
+      // Update in localStorage as well
+      const storedUsers = localStorage.getItem('users') || '[]';
+      const users = JSON.parse(storedUsers);
+      const updatedUsers = users.map((u: any) => {
+        if (u.id === user.id) {
+          return {
+            ...u,
+            enrolledCourses
+          };
+        }
+        return u;
+      });
+      localStorage.setItem('users', JSON.stringify(updatedUsers));
 
     } catch (error) {
       console.error('Update courses error:', error);

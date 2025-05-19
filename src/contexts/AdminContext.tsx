@@ -86,29 +86,86 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
       }
       
       console.log('AdminContext - Fetching users from Supabase');
-      // Direct communication with the REST API for admin functions
-      // Gets all users from Supabase
-      const { data: userData, error } = await supabase.auth.admin.listUsers();
       
-      if (error) {
-        console.error('Error fetching users:', error);
+      // Use the direct data API to get users instead of admin functions
+      // which require more permissions
+      const { data: authUsers, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('Error fetching current user:', authError);
         return [];
       }
       
-      console.log('AdminContext - Users fetched:', userData);
+      // Get all users directly from the database
+      const { data: userData, error: usersError } = await supabase
+        .from('users')
+        .select('*');
+        
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        
+        // Fallback to get all users from auth.users if possible
+        const { data: signups, error: signupsError } = await supabase
+          .from('auth_users')
+          .select('*');
+          
+        if (signupsError || !signups) {
+          console.error('Error fetching auth users:', signupsError);
+          
+          // Last resort: use the current user plus any from localStorage
+          const storedUsers = localStorage.getItem('users');
+          const localUsers = storedUsers ? JSON.parse(storedUsers) : [];
+          
+          // If we have at least the current user, include them
+          if (authUsers?.user) {
+            const currentUser = {
+              id: authUsers.user.id,
+              name: authUsers.user.user_metadata?.name || 'Unknown',
+              email: authUsers.user.email || '',
+              enrolledCourses: authUsers.user.user_metadata?.enrolledCourses || [],
+              isAdmin: authUsers.user.email === ADMIN_EMAIL
+            };
+            
+            // Merge with local users, avoiding duplicates
+            const combinedUsers = [...localUsers];
+            if (!combinedUsers.some(u => u.id === currentUser.id)) {
+              combinedUsers.push(currentUser);
+            }
+            
+            return combinedUsers;
+          }
+          
+          return localUsers;
+        }
+        
+        // Parse from auth_users table
+        return signups.map(user => ({
+          id: user.id,
+          name: user.raw_user_meta_data?.name || 'Unknown',
+          email: user.email || '',
+          enrolledCourses: user.raw_user_meta_data?.enrolledCourses || [],
+          isAdmin: user.email === ADMIN_EMAIL
+        }));
+      }
       
-      // Transform the data to match the expected format
-      const formattedUsers = userData.users.map(user => ({
+      // Use the data from the users table if available
+      return userData.map((user: any) => ({
         id: user.id,
-        name: user.user_metadata?.name || 'Unknown',
+        name: user.name || user.user_metadata?.name || 'Unknown',
         email: user.email || '',
-        enrolledCourses: user.user_metadata?.enrolledCourses || [],
+        enrolledCourses: user.enrolled_courses || user.user_metadata?.enrolledCourses || [],
         isAdmin: user.email === ADMIN_EMAIL
       }));
       
-      return formattedUsers;
     } catch (error: any) {
       console.error('Error fetching users:', error);
+      
+      // Fallback to localStorage if everything else fails
+      const storedUsers = localStorage.getItem('users');
+      if (storedUsers) {
+        return JSON.parse(storedUsers);
+      }
+      
       return [];
     }
   };
