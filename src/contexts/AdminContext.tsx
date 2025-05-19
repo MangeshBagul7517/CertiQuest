@@ -1,186 +1,32 @@
 
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { toast } from 'sonner';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Course } from '@/lib/types';
+
+// Define the User type to fix type errors
+type User = {
+  id: string;
+  email: string;
+  raw_user_meta_data: {
+    full_name?: string;
+  };
+};
 
 interface AdminContextType {
-  isAdmin: boolean;
-  adminLogout: () => void;
-  checkAdminStatus: () => boolean;
-  fetchSupabaseUsers: () => Promise<any[]>;
+  courses: Course[];
+  users: User[];
+  loading: boolean;
+  error: string | null;
+  addCourse: (course: Omit<Course, 'id'>) => Promise<void>;
+  updateCourse: (id: string, course: Partial<Course>) => Promise<void>;
+  deleteCourse: (id: string) => Promise<void>;
+  assignCourseToUser: (userId: string, courseId: string) => Promise<void>;
+  unassignCourseFromUser: (userId: string, courseId: string) => Promise<void>;
+  getUserCourses: (userId: string) => Promise<string[]>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
-
-// Define admin email for consistency
-const ADMIN_EMAIL = "mangeshbbagul@gmail.com";
-
-export const AdminProvider = ({ children }: { children: ReactNode }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  
-  useEffect(() => {
-    const checkAdminStatus = () => {
-      // Check both session storage and user email
-      const adminAuth = sessionStorage.getItem('isAdmin') === 'true';
-      
-      // Also verify with Supabase session if available
-      supabase.auth.getSession().then(({ data }) => {
-        const isAdminEmail = data.session?.user?.email === ADMIN_EMAIL;
-        if (isAdminEmail) {
-          sessionStorage.setItem('isAdmin', 'true');
-          setIsAdmin(true);
-          console.log('AdminContext - Admin confirmed via Supabase session');
-        } else if (adminAuth) {
-          // If session storage says admin but Supabase doesn't, trust session storage
-          // This handles cases where the page is refreshed
-          setIsAdmin(true);
-          console.log('AdminContext - Admin confirmed via sessionStorage');
-        } else {
-          // Only set to false if both checks fail
-          setIsAdmin(false);
-          console.log('AdminContext - Not admin');
-        }
-      });
-    };
-    
-    // Check on initial load
-    checkAdminStatus();
-    
-    // Set up listener for changes
-    const authListener = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('AdminContext - Auth state changed:', event);
-      if (event === 'SIGNED_IN' && session?.user?.email === ADMIN_EMAIL) {
-        sessionStorage.setItem('isAdmin', 'true');
-        setIsAdmin(true);
-        console.log('AdminContext - Admin signed in');
-      } else if (event === 'SIGNED_OUT') {
-        sessionStorage.removeItem('isAdmin');
-        setIsAdmin(false);
-        console.log('AdminContext - User signed out');
-      }
-    });
-    
-    return () => {
-      authListener.data.subscription.unsubscribe();
-    };
-  }, []);
-
-  const adminLogout = () => {
-    sessionStorage.removeItem('isAdmin');
-    setIsAdmin(false);
-    toast.info('Admin logged out');
-  };
-
-  const checkAdminStatus = () => {
-    const status = sessionStorage.getItem('isAdmin') === 'true';
-    console.log('AdminContext - Checking admin status:', status);
-    return status;
-  };
-  
-  const fetchSupabaseUsers = async () => {
-    try {
-      // Only admins should be able to fetch users
-      if (!isAdmin && sessionStorage.getItem('isAdmin') !== 'true') {
-        console.error('Only admins can fetch users');
-        return [];
-      }
-      
-      console.log('AdminContext - Fetching users from Supabase');
-      
-      // Use the direct data API to get users instead of admin functions
-      // which require more permissions
-      const { data: authUsers, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) {
-        console.error('Error fetching current user:', authError);
-        return [];
-      }
-      
-      // Get all users directly from the database
-      const { data: userData, error: usersError } = await supabase
-        .from('users')
-        .select('*');
-        
-      if (usersError) {
-        console.error('Error fetching users:', usersError);
-        
-        // Fallback to get all users from auth.users if possible
-        const { data: signups, error: signupsError } = await supabase
-          .from('auth_users')
-          .select('*');
-          
-        if (signupsError || !signups) {
-          console.error('Error fetching auth users:', signupsError);
-          
-          // Last resort: use the current user plus any from localStorage
-          const storedUsers = localStorage.getItem('users');
-          const localUsers = storedUsers ? JSON.parse(storedUsers) : [];
-          
-          // If we have at least the current user, include them
-          if (authUsers?.user) {
-            const currentUser = {
-              id: authUsers.user.id,
-              name: authUsers.user.user_metadata?.name || 'Unknown',
-              email: authUsers.user.email || '',
-              enrolledCourses: authUsers.user.user_metadata?.enrolledCourses || [],
-              isAdmin: authUsers.user.email === ADMIN_EMAIL
-            };
-            
-            // Merge with local users, avoiding duplicates
-            const combinedUsers = [...localUsers];
-            if (!combinedUsers.some(u => u.id === currentUser.id)) {
-              combinedUsers.push(currentUser);
-            }
-            
-            return combinedUsers;
-          }
-          
-          return localUsers;
-        }
-        
-        // Parse from auth_users table
-        return signups.map(user => ({
-          id: user.id,
-          name: user.raw_user_meta_data?.name || 'Unknown',
-          email: user.email || '',
-          enrolledCourses: user.raw_user_meta_data?.enrolledCourses || [],
-          isAdmin: user.email === ADMIN_EMAIL
-        }));
-      }
-      
-      // Use the data from the users table if available
-      return userData.map((user: any) => ({
-        id: user.id,
-        name: user.name || user.user_metadata?.name || 'Unknown',
-        email: user.email || '',
-        enrolledCourses: user.enrolled_courses || user.user_metadata?.enrolledCourses || [],
-        isAdmin: user.email === ADMIN_EMAIL
-      }));
-      
-    } catch (error: any) {
-      console.error('Error fetching users:', error);
-      
-      // Fallback to localStorage if everything else fails
-      const storedUsers = localStorage.getItem('users');
-      if (storedUsers) {
-        return JSON.parse(storedUsers);
-      }
-      
-      return [];
-    }
-  };
-
-  return (
-    <AdminContext.Provider value={{ 
-      isAdmin, 
-      adminLogout, 
-      checkAdminStatus,
-      fetchSupabaseUsers
-    }}>
-      {children}
-    </AdminContext.Provider>
-  );
-};
 
 export const useAdmin = () => {
   const context = useContext(AdminContext);
@@ -188,4 +34,200 @@ export const useAdmin = () => {
     throw new Error('useAdmin must be used within an AdminProvider');
   }
   return context;
+};
+
+interface AdminProviderProps {
+  children: ReactNode;
+}
+
+export const AdminProvider = ({ children }: AdminProviderProps) => {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCourses();
+    fetchUsers();
+  }, []);
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*');
+
+      if (error) throw error;
+
+      setCourses(data || []);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setError('Failed to fetch courses');
+      toast.error('Failed to load courses');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      
+      // Get users from auth.users
+      const { data: authUsers, error: authError } = await supabase
+        .from('users')
+        .select('*');
+
+      if (authError) throw authError;
+      
+      setUsers(authUsers || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError('Failed to fetch users');
+      toast.error('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addCourse = async (course: Omit<Course, 'id'>) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('courses')
+        .insert([course])
+        .select();
+
+      if (error) throw error;
+
+      setCourses([...courses, data[0]]);
+      toast.success('Course added successfully');
+    } catch (error) {
+      console.error('Error adding course:', error);
+      setError('Failed to add course');
+      toast.error('Failed to add course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCourse = async (id: string, course: Partial<Course>) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('courses')
+        .update(course)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCourses(courses.map(c => c.id === id ? { ...c, ...course } : c));
+      toast.success('Course updated successfully');
+    } catch (error) {
+      console.error('Error updating course:', error);
+      setError('Failed to update course');
+      toast.error('Failed to update course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteCourse = async (id: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCourses(courses.filter(c => c.id !== id));
+      toast.success('Course deleted successfully');
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      setError('Failed to delete course');
+      toast.error('Failed to delete course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const assignCourseToUser = async (userId: string, courseId: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('user_courses')
+        .insert([{ user_id: userId, course_id: courseId }]);
+
+      if (error) throw error;
+
+      toast.success('Course assigned successfully');
+    } catch (error) {
+      console.error('Error assigning course:', error);
+      setError('Failed to assign course');
+      toast.error('Failed to assign course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const unassignCourseFromUser = async (userId: string, courseId: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('user_courses')
+        .delete()
+        .eq('user_id', userId)
+        .eq('course_id', courseId);
+
+      if (error) throw error;
+
+      toast.success('Course unassigned successfully');
+    } catch (error) {
+      console.error('Error unassigning course:', error);
+      setError('Failed to unassign course');
+      toast.error('Failed to unassign course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getUserCourses = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_courses')
+        .select('course_id')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      return data.map(item => item.course_id);
+    } catch (error) {
+      console.error('Error fetching user courses:', error);
+      setError('Failed to fetch user courses');
+      toast.error('Failed to fetch user courses');
+      return [];
+    }
+  };
+
+  return (
+    <AdminContext.Provider
+      value={{
+        courses,
+        users,
+        loading,
+        error,
+        addCourse,
+        updateCourse,
+        deleteCourse,
+        assignCourseToUser,
+        unassignCourseFromUser,
+        getUserCourses,
+      }}
+    >
+      {children}
+    </AdminContext.Provider>
+  );
 };

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { toast } from 'sonner';
@@ -48,8 +47,8 @@ const ContactPage = () => {
     try {
       // Send email via EmailJS
       const response = await emailjs.send(
-        'service_jnwp6jj', // Replace with your EmailJS service ID
-        'template_w9gnvdn', // Replace with your EmailJS template ID
+        'service_jnwp6jj', // EmailJS service ID
+        'template_w9gnvdn', // EmailJS template ID
         {
           from_name: formData.name,
           from_email: formData.email,
@@ -58,7 +57,7 @@ const ContactPage = () => {
           subject: formData.subject,
           message: formData.message
         },
-        'RtNvifJglWDbjZCyo' // Replace with your EmailJS public key
+        'RtNvifJglWDbjZCyo' // EmailJS public key
       );
       
       if (response.status === 200) {
@@ -294,7 +293,7 @@ const ContactPage = () => {
             </p>
           </div>
           
-          <div className="space-y-6 text-blue-500">
+          <div className="space-y-6">
             {[
               {
                 question: "How quickly can I expect a response to my inquiry?",

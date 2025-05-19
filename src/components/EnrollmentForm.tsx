@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -17,10 +16,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { loadCourses } from '@/lib/data';
 import { EnrollmentForm as EnrollmentFormType } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import emailjs from '@emailjs/browser';
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -58,32 +58,50 @@ export default function EnrollmentForm() {
     setIsSubmitting(true);
     
     try {
-      // Store enrollment request in localStorage
-      const enrollments = JSON.parse(localStorage.getItem('enrollmentRequests') || '[]');
+      // Get the selected course details
+      const selectedCourse = courses.find(course => course.id === values.courseId);
       
-      const newEnrollment: EnrollmentFormType = {
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        courseId: values.courseId,
-        message: values.message || "",
-      };
+      // Send email via EmailJS
+      const response = await emailjs.send(
+        'service_jnwp6jj', // EmailJS service ID
+        'template_w9gnvdn', // EmailJS template ID
+        {
+          from_name: values.name,
+          from_email: values.email,
+          phone: values.phone,
+          inquiry_type: 'Enrollment',
+          subject: `Enrollment Request: ${selectedCourse?.title || values.courseId}`,
+          message: `
+Course: ${selectedCourse?.title || values.courseId}
+Price: ${selectedCourse?.currency || "₹"}${selectedCourse?.price || ""}
+
+Additional Information:
+${values.message || "None provided"}
+          `
+        },
+        'RtNvifJglWDbjZCyo' // EmailJS public key
+      );
       
-      enrollments.push(newEnrollment);
-      localStorage.setItem('enrollmentRequests', JSON.stringify(enrollments));
-      
-      toast.success('Enrollment request submitted successfully! We will contact you shortly.');
-      form.reset();
-      
-      // In a real app, this would use emailjs to send an email
-      // Example:
-      // await emailjs.send(
-      //   'YOUR_SERVICE_ID',
-      //   'YOUR_TEMPLATE_ID',
-      //   values,
-      //   'YOUR_USER_ID'
-      // );
-      
+      if (response.status === 200) {
+        // Store enrollment request in localStorage for backup
+        const enrollments = JSON.parse(localStorage.getItem('enrollmentRequests') || '[]');
+        
+        const newEnrollment: EnrollmentFormType = {
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          courseId: values.courseId,
+          message: values.message || "",
+        };
+        
+        enrollments.push(newEnrollment);
+        localStorage.setItem('enrollmentRequests', JSON.stringify(enrollments));
+        
+        toast.success('Enrollment request submitted successfully! We will contact you shortly.');
+        form.reset();
+      } else {
+        throw new Error('Failed to submit enrollment request');
+      }
     } catch (error) {
       console.error('Enrollment submission error:', error);
       toast.error('Failed to submit enrollment request. Please try again later.');
