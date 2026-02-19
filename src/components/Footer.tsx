@@ -1,14 +1,40 @@
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Footer = () => {
-  const handleSubscribe = (e: React.FormEvent) => {
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add newsletter subscription logic here
+    if (!newsletterEmail) return;
+    
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from('newsletter_emails').insert({ email: newsletterEmail });
+      if (error) {
+        if (error.code === '23505') {
+          toast.info('You are already subscribed!');
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success('Successfully subscribed to newsletter!');
+        setNewsletterEmail('');
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      toast.error('Failed to subscribe. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const currentYear = new Date().getFullYear();
@@ -115,9 +141,11 @@ const Footer = () => {
                 placeholder="Your email" 
                 required 
                 className="bg-background"
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
               />
-              <Button type="submit" className="w-full">
-                Subscribe
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
               </Button>
             </form>
           </div>

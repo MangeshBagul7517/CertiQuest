@@ -13,7 +13,8 @@ import {
   Users, 
   UserPlus, 
   Search,
-  ExternalLink
+  ExternalLink,
+  Mail
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -35,6 +36,7 @@ import { loadCourses, Course } from '@/lib/data';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { EnrollmentForm } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
 
 // User Management Component
 const UserManagement = () => {
@@ -429,6 +431,62 @@ const UserManagement = () => {
   );
 };
 
+// Newsletter Emails Component
+const NewsletterEmails = () => {
+  const [emails, setEmails] = useState<{ id: string; email: string; subscribed_at: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEmails = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase.from('newsletter_emails').select('*').order('subscribed_at', { ascending: false });
+        if (error) throw error;
+        setEmails(data || []);
+      } catch (error) {
+        console.error('Error fetching newsletter emails:', error);
+        toast.error('Failed to load newsletter emails');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEmails();
+  }, []);
+
+  if (isLoading) return <div className="text-center py-8">Loading newsletter emails...</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Newsletter Subscribers</h2>
+        <span className="text-muted-foreground">{emails.length} subscribers</span>
+      </div>
+      {emails.length === 0 ? (
+        <div className="text-center py-8">
+          <Mail className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">No newsletter subscribers yet</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3">
+          {emails.map((item) => (
+            <Card key={item.id}>
+              <CardContent className="flex items-center justify-between py-4">
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">{item.email}</span>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {new Date(item.subscribed_at).toLocaleDateString()}
+                </span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('courses');
   const { adminLogout } = useAdmin();
@@ -520,9 +578,10 @@ const AdminDashboard = () => {
         </div>
         
         <Tabs defaultValue="courses" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-8">
+          <TabsList className="grid grid-cols-3 mb-8">
             <TabsTrigger value="courses">Course Management</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="newsletter">Newsletter Emails</TabsTrigger>
           </TabsList>
           
           <TabsContent value="courses" className="mt-6">
@@ -531,6 +590,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="users" className="mt-6">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="newsletter" className="mt-6">
+            <NewsletterEmails />
           </TabsContent>
         </Tabs>
       </div>
