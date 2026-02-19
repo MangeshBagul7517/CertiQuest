@@ -113,79 +113,91 @@ const UserManagement = () => {
     setIsAddDriveLinkDialogOpen(true);
   };
   
-  const handleAssignCourse = () => {
+  const handleAssignCourse = async () => {
     if (!selectedUser || !selectedCourseId) {
       toast.error('Please select a course to assign');
       return;
     }
     
-    // Update user's enrolled courses
-    const updatedUsers = users.map(user => {
-      if (user.id === selectedUser.id) {
-        const enrolledCourses = user.enrolledCourses || [];
-        
-        // Check if course is already assigned
-        if (enrolledCourses.includes(selectedCourseId)) {
-          toast.error('Course already assigned to this user');
-          return user;
-        }
-        
-        return {
-          ...user,
-          enrolledCourses: [...enrolledCourses, selectedCourseId]
-        };
-      }
-      return user;
-    });
-    
-    // Save updated users to localStorage
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-    setUsers(updatedUsers);
-    
-    // Update current user if they're logged in
-    const currentUser = localStorage.getItem('user');
-    if (currentUser) {
-      const parsedUser = JSON.parse(currentUser);
-      if (parsedUser.id === selectedUser.id) {
-        const enrolledCourses = parsedUser.enrolledCourses || [];
-        if (!enrolledCourses.includes(selectedCourseId)) {
-          parsedUser.enrolledCourses = [...enrolledCourses, selectedCourseId];
-          localStorage.setItem('user', JSON.stringify(parsedUser));
-        }
-      }
+    const course = courses.find(c => c.id === selectedCourseId);
+    if (!course) {
+      toast.error('Course not found');
+      return;
     }
-    
-    toast.success('Course assigned successfully');
-    setIsAssignCourseDialogOpen(false);
+
+    try {
+      const { error } = await supabase.from('course_assignments').upsert({
+        user_id: selectedUser.id,
+        course_id: selectedCourseId,
+        course_title: course.title,
+        course_image: course.image,
+        course_instructor: course.instructor,
+        course_duration: course.duration,
+        drive_link: course.driveLink || null,
+      }, { onConflict: 'user_id,course_id' });
+
+      if (error) {
+        console.error('Error assigning course:', error);
+        toast.error('Failed to assign course: ' + error.message);
+        return;
+      }
+
+      // Update local state for display
+      const updatedUsers = users.map(user => {
+        if (user.id === selectedUser.id) {
+          const enrolledCourses = user.enrolledCourses || [];
+          if (enrolledCourses.includes(selectedCourseId)) return user;
+          return { ...user, enrolledCourses: [...enrolledCourses, selectedCourseId] };
+        }
+        return user;
+      });
+      setUsers(updatedUsers);
+
+      toast.success('Course assigned successfully');
+      setIsAssignCourseDialogOpen(false);
+    } catch (error) {
+      console.error('Error assigning course:', error);
+      toast.error('Failed to assign course');
+    }
   };
 
-  const handleAddDriveLink = () => {
+  const handleAddDriveLink = async () => {
     if (!selectedUser || !selectedUserCourse || !driveLink) {
       toast.error('Please enter a valid drive link');
       return;
     }
 
-    // Update course drive link in localStorage
-    const storedCourses = localStorage.getItem('courses');
-    if (storedCourses) {
-      const parsedCourses = JSON.parse(storedCourses);
-      const updatedCourses = parsedCourses.map((course: Course) => {
-        if (course.id === selectedUserCourse.id) {
-          return {
-            ...course,
-            driveLink
-          };
-        }
-        return course;
-      });
+    try {
+      // Update in database
+      const { error } = await supabase
+        .from('course_assignments')
+        .update({ drive_link: driveLink })
+        .eq('user_id', selectedUser.id)
+        .eq('course_id', selectedUserCourse.id);
 
-      localStorage.setItem('courses', JSON.stringify(updatedCourses));
-      
-      // Update courses state
-      setCourses(updatedCourses);
-      
+      if (error) {
+        console.error('Error adding drive link:', error);
+        toast.error('Failed to add drive link: ' + error.message);
+        return;
+      }
+
+      // Also update localStorage courses for backwards compat
+      const storedCourses = localStorage.getItem('courses');
+      if (storedCourses) {
+        const parsedCourses = JSON.parse(storedCourses);
+        const updatedCourses = parsedCourses.map((course: Course) => {
+          if (course.id === selectedUserCourse.id) return { ...course, driveLink };
+          return course;
+        });
+        localStorage.setItem('courses', JSON.stringify(updatedCourses));
+        setCourses(updatedCourses);
+      }
+
       toast.success('Drive link added successfully');
       setIsAddDriveLinkDialogOpen(false);
+    } catch (error) {
+      console.error('Error adding drive link:', error);
+      toast.error('Failed to add drive link');
     }
   };
 

@@ -8,8 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { LogOut, User, Settings, BookOpen, ExternalLink, Lock, LayoutDashboard } from "lucide-react";
-import { Course } from "@/lib/types";
-import { loadCourses } from "@/lib/data";
+import { supabase } from "@/integrations/supabase/client";
 import EnrollmentForm from "@/components/EnrollmentForm";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
 import Layout from "@/components/Layout";
@@ -83,50 +82,41 @@ const Profile = () => {
 
 const EnrolledCourses = () => {
   const { user } = useAuth();
-  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [assignedCourses, setAssignedCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    const fetchEnrolledCourses = async () => {
-      if (!user || !user.enrolledCourses || user.enrolledCourses.length === 0) {
-        setEnrolledCourses([]);
+    const fetchAssignedCourses = async () => {
+      if (!user) {
+        setAssignedCourses([]);
         setIsLoading(false);
         return;
       }
       
-      const allCourses = await loadCourses();
-      const userCourses = allCourses.filter(course => 
-        user.enrolledCourses?.includes(course.id)
-      );
-      
-      setEnrolledCourses(userCourses);
-      setIsLoading(false);
+      try {
+        const { data, error } = await supabase
+          .from('course_assignments')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('Error fetching assigned courses:', error);
+          setAssignedCourses([]);
+        } else {
+          setAssignedCourses(data || []);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    fetchEnrolledCourses();
+    fetchAssignedCourses();
   }, [user]);
   
   if (isLoading) {
     return <div className="text-center py-8">Loading your courses...</div>;
-  }
-  
-  if (enrolledCourses.length === 0) {
-    return (
-      <div className="py-8">
-        <div className="mb-6">
-          <h3 className="text-xl font-medium mb-2">You haven't enrolled in any courses yet</h3>
-          <div className="flex flex-col md:flex-row gap-4 mt-4">
-            <Link to="/courses">
-              <Button>
-                <BookOpen className="mr-2 h-4 w-4" />
-                Browse Courses
-              </Button>
-            </Link>
-          </div>
-        </div>
-        <EnrollmentForm />
-      </div>
-    );
   }
   
   return (
@@ -140,35 +130,51 @@ const EnrolledCourses = () => {
           </Button>
         </Link>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {enrolledCourses.map(course => (
-          <Card key={course.id} className="overflow-hidden">
-            <div className="aspect-video bg-slate-100">
-              <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
-            </div>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
-              <div className="flex justify-between text-sm text-muted-foreground mb-4">
-                <span>{course.instructor}</span>
-                <span>{course.duration}</span>
+
+      {assignedCourses.length === 0 ? (
+        <div className="py-8">
+          <div className="mb-6">
+            <h3 className="text-xl font-medium mb-2">You haven't been assigned any courses yet</h3>
+            <p className="text-muted-foreground mb-4">Browse our catalog and enroll to get started.</p>
+            <Link to="/courses">
+              <Button>
+                <BookOpen className="mr-2 h-4 w-4" />
+                Browse Courses
+              </Button>
+            </Link>
+          </div>
+          <EnrollmentForm />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {assignedCourses.map(course => (
+            <Card key={course.id} className="overflow-hidden">
+              <div className="aspect-video bg-muted">
+                <img src={course.course_image} alt={course.course_title} className="w-full h-full object-cover" />
               </div>
-              {course.driveLink ? (
-                <a href={course.driveLink} target="_blank" rel="noopener noreferrer">
-                  <Button size="sm" className="w-full">
-                    Access Course Material
-                    <ExternalLink className="h-4 w-4 ml-2" />
-                  </Button>
-                </a>
-              ) : (
-                <div className="text-center p-2 text-sm text-muted-foreground">
-                  Course material will be available soon
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-lg mb-2">{course.course_title}</h3>
+                <div className="flex justify-between text-sm text-muted-foreground mb-4">
+                  <span>{course.course_instructor}</span>
+                  <span>{course.course_duration}</span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                {course.drive_link ? (
+                  <a href={course.drive_link} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" className="w-full">
+                      Access Course Material
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Button>
+                  </a>
+                ) : (
+                  <div className="text-center p-2 text-sm text-muted-foreground">
+                    Course material will be available soon
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
