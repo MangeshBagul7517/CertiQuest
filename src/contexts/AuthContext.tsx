@@ -26,7 +26,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Define admin email
-const ADMIN_EMAIL = "mangeshbbagul@gmail.com";
+const ADMIN_EMAIL = "admin@certiquest.store";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -165,7 +165,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.log('Registration successful:', data);
-      toast.success('Registration successful! Please verify your email if required.');
+      toast.success('Registration successful!');
       
       // Save to localStorage as well for backup
       const storedUsers = localStorage.getItem('users') || '[]';

@@ -111,7 +111,7 @@ ${values.message || "None provided"}
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle>Request Course Enrollment</CardTitle>
         <CardDescription>

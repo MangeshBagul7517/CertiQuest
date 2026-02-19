@@ -50,8 +50,8 @@ const Register = () => {
       const success = await register(name, email, password);
       
       if (success) {
-        setShowEmailSentDialog(true);
-        toast.success("Registration successful! Please check your email to verify your account.");
+        toast.success("Registration successful! You can now login.");
+        navigate("/login");
       }
     } catch (error) {
       console.error("Registration error:", error);
