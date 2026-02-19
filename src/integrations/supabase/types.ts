@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      course_assignments: {
+        Row: {
+          assigned_at: string
+          course_duration: string | null
+          course_id: string
+          course_image: string | null
+          course_instructor: string | null
+          course_title: string
+          drive_link: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          course_duration?: string | null
+          course_id: string
+          course_image?: string | null
+          course_instructor?: string | null
+          course_title: string
+          drive_link?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          course_duration?: string | null
+          course_id?: string
+          course_image?: string | null
+          course_instructor?: string | null
+          course_title?: string
+          drive_link?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       newsletter_emails: {
         Row: {
           email: string
