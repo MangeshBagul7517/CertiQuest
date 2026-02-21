@@ -116,16 +116,28 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
 
   const fetchSupabaseUsers = async (): Promise<User[]> => {
     try {
-      // Since we don't have the 'users' table in Supabase yet,
-      // let's return users from localStorage
-      const storedUsers = localStorage.getItem('users');
-      if (storedUsers) {
-        return JSON.parse(storedUsers);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+
+      const response = await supabase.functions.invoke('list-users');
+      
+      if (response.error) {
+        console.error('Error fetching users:', response.error);
+        toast.error('Failed to fetch users');
+        return [];
       }
-      return [];
+
+      const fetchedUsers = response.data?.users || [];
+      return fetchedUsers.map((u: any) => ({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        enrolledCourses: u.enrolledCourses || [],
+        raw_user_meta_data: { full_name: u.name },
+      }));
     } catch (error) {
       console.error('Error fetching Supabase users:', error);
-      toast.error('Failed to fetch users from Supabase');
+      toast.error('Failed to fetch users');
       return [];
     }
   };
