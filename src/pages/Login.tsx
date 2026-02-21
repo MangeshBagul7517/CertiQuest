@@ -18,15 +18,8 @@ const Login = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
   
-  // Check for redirect flag
-  const [redirectToPayment, setRedirectToPayment] = useState(false);
   
   useEffect(() => {
-    const redirectFlag = localStorage.getItem('redirectAfterLogin');
-    if (redirectFlag === 'payment') {
-      setRedirectToPayment(true);
-    }
-    
     // If already logged in, redirect appropriately
     if (user) {
       if (user.isAdmin) {
@@ -51,11 +44,6 @@ const Login = () => {
       const success = await login(email, password);
       if (success) {
         // Redirect handled in the useEffect above when user is updated
-        
-        // Check if we need to redirect to payment
-        if (redirectToPayment) {
-          window.location.href = "https://payments.cashfree.com/forms?code=certiqiest";
-        }
       }
     } catch (error) {
       console.error("Login error:", error);

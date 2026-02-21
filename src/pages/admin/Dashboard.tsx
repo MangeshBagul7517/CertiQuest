@@ -337,12 +337,12 @@ const UserManagement = () => {
           {filteredUsers.map((user) => (
             <Card key={user.id}>
               <CardHeader className="pb-2">
-                <div className="flex justify-between">
+                <div className="flex flex-col sm:flex-row justify-between gap-2">
                   <div>
-                    <CardTitle>{user.name}</CardTitle>
-                    <CardDescription>{user.email}</CardDescription>
+                    <CardTitle className="text-base sm:text-lg">{user.name}</CardTitle>
+                    <CardDescription className="text-sm break-all">{user.email}</CardDescription>
                   </div>
-                  <Button onClick={() => openAssignDialog(user)} variant="outline">
+                  <Button onClick={() => openAssignDialog(user)} variant="outline" size="sm" className="self-start">
                     <UserPlus className="h-4 w-4 mr-2" />
                     Assign Course
                   </Button>
@@ -355,7 +355,7 @@ const UserManagement = () => {
                     {user.enrolledCourses.map((courseId: string) => {
                       const course = courses.find(c => c.id === courseId);
                       return (
-                        <li key={courseId} className="px-3 py-2 bg-slate-50 rounded flex justify-between items-center">
+                        <li key={courseId} className="px-3 py-2 bg-muted rounded flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                           <span className="flex-1">{course?.title || 'Unknown Course'}</span>
                           <span className="text-muted-foreground mx-2">{course?.price ? `${course.currency || '₹'}${course.price}` : ''}</span>
                           <Button 
@@ -508,25 +508,25 @@ const AdminDashboard = () => {
   const [enrollmentCount, setEnrollmentCount] = useState(0);
   
   useEffect(() => {
-    // Load stats
     const loadStats = async () => {
-      // Load users
-      const storedUsers = localStorage.getItem('users');
-      const users = storedUsers ? JSON.parse(storedUsers) : [];
-      setUserCount(users.length);
+      try {
+        // Fetch user count from edge function
+        const response = await supabase.functions.invoke('list-users');
+        const users = response.data?.users || [];
+        setUserCount(users.length);
+        
+        // Count enrollments from course_assignments
+        const { count } = await supabase
+          .from('course_assignments')
+          .select('*', { count: 'exact', head: true });
+        setEnrollmentCount(count || 0);
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      }
       
       // Load courses
       const courses = await loadCourses();
       setcourseCount(courses.length);
-      
-      // Count enrollments
-      let totalEnrollments = 0;
-      users.forEach((user: any) => {
-        if (user.enrolledCourses) {
-          totalEnrollments += user.enrolledCourses.length;
-        }
-      });
-      setEnrollmentCount(totalEnrollments);
     };
     
     loadStats();
@@ -539,7 +539,7 @@ const AdminDashboard = () => {
   
   return (
     <Layout>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
@@ -590,7 +590,7 @@ const AdminDashboard = () => {
         </div>
         
         <Tabs defaultValue="courses" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8 text-xs sm:text-sm">
             <TabsTrigger value="courses">Course Management</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="newsletter">Newsletter Emails</TabsTrigger>
