@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,7 +21,7 @@ import { Menu, Search, ShoppingCart, X, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
-import { useAdmin } from '@/contexts/AdminContext';
+import { AdminContext } from '@/contexts/AdminContext';
 
 const NavLink = ({ to, children, className }: { to: string; children: React.ReactNode; className?: string }) => {
   const location = useLocation();
@@ -48,8 +48,8 @@ const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
-  const admin = useAdmin();
-  const isAdmin = admin.isAdmin;
+  const admin = useContext(AdminContext);
+  const isAdmin = admin?.isAdmin ?? false;
 
   // Update scroll state
   useEffect(() => {

@@ -29,7 +29,7 @@ interface AdminContextType {
   adminLogout: () => void; // Add this method
 }
 
-const AdminContext = createContext<AdminContextType | undefined>(undefined);
+export const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const useAdmin = () => {
   const context = useContext(AdminContext);
