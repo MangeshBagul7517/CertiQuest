@@ -28,13 +28,11 @@ const Checkout = () => {
   const [city, setCity] = useState("");
   const [pincode, setPincode] = useState("");
   
-  // Check if redirected from login
+  // Pre-fill user info
   useEffect(() => {
-    const redirectAfterLogin = localStorage.getItem('redirectAfterLogin');
-    if (redirectAfterLogin === 'payment' && user) {
-      localStorage.removeItem('redirectAfterLogin');
-      // Redirect to payment gateway directly
-      window.location.href = "https://payments.cashfree.com/forms?code=certiqiest";
+    if (user) {
+      setName(user.name || "");
+      setEmail(user.email || "");
     }
   }, [user]);
 
