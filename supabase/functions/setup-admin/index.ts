@@ -1,10 +1,19 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
+
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
@@ -20,10 +29,11 @@ Deno.serve(async (req) => {
 
     if (existingAdmin) {
       userId = existingAdmin.id;
-      // Update password
-      await supabaseAdmin.auth.admin.updateUserById(userId, { password: adminPassword });
+      await supabaseAdmin.auth.admin.updateUserById(userId, { 
+        password: adminPassword,
+        email_confirm: true 
+      });
     } else {
-      // Create admin user
       const { data, error } = await supabaseAdmin.auth.admin.createUser({
         email: adminEmail,
         password: adminPassword,
@@ -44,12 +54,12 @@ Deno.serve(async (req) => {
     if (roleError) throw roleError;
 
     return new Response(JSON.stringify({ success: true, message: "Admin user setup complete" }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
